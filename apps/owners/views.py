@@ -5,7 +5,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
+
 from .models import Owner
 from .forms import OwnerForm, OwnerSearchForm
 
@@ -13,37 +14,49 @@ from .forms import OwnerForm, OwnerSearchForm
 @login_required
 def owner_list(request):
     """List all owners with search and filter"""
-    owners = Owner.objects.all()
+    queryset = Owner.objects.annotate(properties_count=Count('properties'))
     
-    # Search and Filter
     search_form = OwnerSearchForm(request.GET)
     if search_form.is_valid():
-        search = search_form.cleaned_data.get('search')
-        city = search_form.cleaned_data.get('city')
-        is_active = search_form.cleaned_data.get('is_active')
-        
+        filters = search_form.cleaned_data
+        search = filters.get('search')
         if search:
-            owners = owners.filter(
-                Q(name__icontains=search) |
-                Q(phone__icontains=search) |
-                Q(email__icontains=search) |
-                Q(national_id__icontains=search)
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(email__icontains=search)
+                | Q(phone__icontains=search)
+                | Q(national_id__icontains=search)
             )
         
-        if city:
-            owners = owners.filter(city__icontains=city)
+        if filters.get('city'):
+            queryset = queryset.filter(city__icontains=filters['city'])
         
-        if is_active is not None:
-            owners = owners.filter(is_active=is_active)
+        if filters.get('country'):
+            queryset = queryset.filter(country__icontains=filters['country'])
+        
+        is_active = filters.get('is_active')
+        if is_active == 'true':
+            queryset = queryset.filter(is_active=True)
+        elif is_active == 'false':
+            queryset = queryset.filter(is_active=False)
     
-    # Pagination
-    paginator = Paginator(owners, 20)
-    page = request.GET.get('page')
-    owners = paginator.get_page(page)
+    sort_option = request.GET.get('sort', 'name')
+    sort_mapping = {
+        'name': 'name',
+        'email': 'email',
+        'newest': '-created_at',
+        'oldest': 'created_at',
+        'properties': '-properties_count',
+    }
+    queryset = queryset.order_by(sort_mapping.get(sort_option, 'name'))
+    
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
     
     context = {
-        'owners': owners,
+        'owners': page_obj,
         'search_form': search_form,
+        'sort_option': sort_option,
         'total_count': Owner.objects.count(),
         'active_count': Owner.objects.filter(is_active=True).count(),
     }
@@ -58,7 +71,7 @@ def owner_create(request):
         if form.is_valid():
             owner = form.save()
             messages.success(request, f'Owner {owner.name} created successfully!')
-            return redirect('owners:list')
+            return redirect('owners:detail', pk=owner.pk)
     else:
         form = OwnerForm()
     
@@ -76,7 +89,7 @@ def owner_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f'Owner {owner.name} updated successfully!')
-            return redirect('owners:list')
+            return redirect('owners:detail', pk=owner.pk)
     else:
         form = OwnerForm(instance=owner)
     
@@ -86,6 +99,22 @@ def owner_update(request, pk):
         'action': 'Update'
     }
     return render(request, 'owners/form.html', context)
+
+
+@login_required
+def owner_detail(request, pk):
+    """Owner detail view with properties"""
+    owner = get_object_or_404(Owner, pk=pk)
+    properties = owner.properties.select_related('property_type').all()
+    
+    context = {
+        'owner': owner,
+        'properties': properties,
+        'properties_count': properties.count(),
+        'active_properties': properties.filter(is_active=True).count(),
+        'available_properties': properties.filter(status='available').count(),
+    }
+    return render(request, 'owners/detail.html', context)
 
 
 @login_required

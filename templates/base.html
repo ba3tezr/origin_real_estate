@@ -63,6 +63,13 @@
             </li>
             
             <li>
+                <a href="{% url 'financial:dashboard' %}" class="{% if 'financial' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Financial</span>
+                </a>
+            </li>
+            
+            <li>
                 <a href="{% url 'owners:list' %}" class="{% if 'owners' in request.path %}active{% endif %}">
                     <i class="fas fa-users"></i>
                     <span>Owners</span>

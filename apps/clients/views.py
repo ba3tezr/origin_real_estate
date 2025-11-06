@@ -5,48 +5,63 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
+
 from .models import Client
 from .forms import ClientForm, ClientSearchForm
+
 
 @login_required
 def client_list(request):
     """List all clients with search and filter"""
-    clients = Client.objects.all()
+    queryset = Client.objects.annotate(contracts_count=Count('contracts'))
     
-    # Search and Filter
     search_form = ClientSearchForm(request.GET)
     if search_form.is_valid():
-        search = search_form.cleaned_data.get('search')
-        city = search_form.cleaned_data.get('city')
-        is_active = search_form.cleaned_data.get('is_active')
-        
+        filters = search_form.cleaned_data
+        search = filters.get('search')
         if search:
-            clients = clients.filter(
-                Q(name__icontains=search) |
-                Q(phone__icontains=search) |
-                Q(email__icontains=search) |
-                Q(national_id__icontains=search)
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(email__icontains=search)
+                | Q(phone__icontains=search)
+                | Q(national_id__icontains=search)
             )
         
-        if city:
-            clients = clients.filter(city__icontains=city)
+        if filters.get('city'):
+            queryset = queryset.filter(city__icontains=filters['city'])
         
-        if is_active is not None:
-            clients = clients.filter(is_active=is_active)
+        if filters.get('country'):
+            queryset = queryset.filter(country__icontains=filters['country'])
+        
+        is_active = filters.get('is_active')
+        if is_active == 'true':
+            queryset = queryset.filter(is_active=True)
+        elif is_active == 'false':
+            queryset = queryset.filter(is_active=False)
     
-    # Pagination
-    paginator = Paginator(clients, 20)
-    page = request.GET.get('page')
-    clients = paginator.get_page(page)
+    sort_option = request.GET.get('sort', 'name')
+    sort_mapping = {
+        'name': 'name',
+        'email': 'email',
+        'newest': '-created_at',
+        'oldest': 'created_at',
+        'contracts': '-contracts_count',
+    }
+    queryset = queryset.order_by(sort_mapping.get(sort_option, 'name'))
+    
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
     
     context = {
-        'clients': clients,
+        'clients': page_obj,
         'search_form': search_form,
+        'sort_option': sort_option,
         'total_count': Client.objects.count(),
         'active_count': Client.objects.filter(is_active=True).count(),
     }
     return render(request, 'clients/list.html', context)
+
 
 @login_required
 def client_create(request):
@@ -56,12 +71,13 @@ def client_create(request):
         if form.is_valid():
             client = form.save()
             messages.success(request, f'Client {client.name} created successfully!')
-            return redirect('clients:list')
+            return redirect('clients:detail', pk=client.pk)
     else:
         form = ClientForm()
     
     context = {'form': form, 'action': 'Create'}
     return render(request, 'clients/form.html', context)
+
 
 @login_required
 def client_update(request, pk):
@@ -73,7 +89,7 @@ def client_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f'Client {client.name} updated successfully!')
-            return redirect('clients:list')
+            return redirect('clients:detail', pk=client.pk)
     else:
         form = ClientForm(instance=client)
     
@@ -83,6 +99,22 @@ def client_update(request, pk):
         'action': 'Update'
     }
     return render(request, 'clients/form.html', context)
+
+
+@login_required
+def client_detail(request, pk):
+    """Client detail view with contracts"""
+    client = get_object_or_404(Client, pk=pk)
+    contracts = client.contracts.select_related('property').all()
+    
+    context = {
+        'client': client,
+        'contracts': contracts,
+        'contracts_count': contracts.count(),
+        'active_contracts': contracts.filter(status='active').count(),
+    }
+    return render(request, 'clients/detail.html', context)
+
 
 @login_required
 def client_delete(request, pk):

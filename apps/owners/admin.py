@@ -4,21 +4,29 @@ Admin configuration for Owners app
 from django.contrib import admin
 from .models import Owner
 
+
 @admin.register(Owner)
 class OwnerAdmin(admin.ModelAdmin):
-    list_display = ['name', 'phone', 'email', 'is_active', 'created_at']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['name', 'phone', 'email', 'national_id']
+    """Admin configuration for Owner model"""
+    list_display = ['name', 'email', 'phone', 'city', 'is_active', 'created_at']
+    list_filter = ['is_active', 'city', 'country', 'created_at']
+    search_fields = ['name', 'email', 'phone', 'national_id', 'tax_id']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'phone', 'email', 'national_id')
+            'fields': ('name', 'email', 'phone', 'mobile')
+        }),
+        ('Address', {
+            'fields': ('address', 'city', 'country')
+        }),
+        ('Legal Information', {
+            'fields': ('national_id', 'tax_id')
         }),
         ('Additional Information', {
-            'fields': ('address', 'notes', 'is_active')
+            'fields': ('notes', 'is_active')
         }),
-        ('Meta', {
+        ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),

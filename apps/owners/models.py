@@ -25,8 +25,9 @@ class Owner(models.Model):
     country = models.CharField(_('Country'), max_length=100, default='Egypt')
     
     # Additional Information
+    mobile = models.CharField(_('Mobile'), validators=[phone_regex], max_length=17, blank=True)
     notes = models.TextField(_('Notes'), blank=True)
-    tax_number = models.CharField(_('Tax Number'), max_length=50, blank=True)
+    tax_id = models.CharField(_('Tax ID'), max_length=50, blank=True)
     
     # Status
     is_active = models.BooleanField(_('Active'), default=True)

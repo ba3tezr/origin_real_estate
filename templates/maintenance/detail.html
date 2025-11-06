@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ maintenance.request_number }} · Maintenance{% endblock %}
+{% block page_title %}Maintenance Request Details{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h3 class="mb-2">{{ maintenance.title }}</h3>
+            <div class="d-flex flex-wrap gap-3 text-muted">
+                <span><i class="fas fa-hashtag me-1"></i>{{ maintenance.request_number }}</span>
+                <span><i class="fas fa-building me-1"></i>{{ maintenance.property.code }} - {{ maintenance.property.title }}</span>
+                {% if maintenance.category %}
+                <span><i class="fas fa-tag me-1"></i>{{ maintenance.category.name }}</span>
+                {% endif %}
+                <span>
+                    {% if maintenance.priority == 'urgent' %}
+                        <span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ maintenance.get_priority_display }}</span>
+                    {% elif maintenance.priority == 'high' %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation me-1"></i>{{ maintenance.get_priority_display }}</span>
+                    {% elif maintenance.priority == 'medium' %}
+                        <span class="badge bg-info"><i class="fas fa-minus-circle me-1"></i>{{ maintenance.get_priority_display }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary"><i class="fas fa-check-circle me-1"></i>{{ maintenance.get_priority_display }}</span>
+                    {% endif %}
+                </span>
+                <span>
+                    {% if maintenance.status == 'completed' %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>{{ maintenance.get_status_display }}</span>
+                    {% elif maintenance.status == 'in_progress' %}
+                        <span class="badge bg-info"><i class="fas fa-spinner me-1"></i>{{ maintenance.get_status_display }}</span>
+                    {% elif maintenance.status == 'cancelled' %}
+                        <span class="badge bg-secondary"><i class="fas fa-times-circle me-1"></i>{{ maintenance.get_status_display }}</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>{{ maintenance.get_status_display }}</span>
+                    {% endif %}
+                </span>
+                {% if maintenance.is_overdue %}
+                    <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i>Overdue</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'maintenance:update' maintenance.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a href="{% url 'maintenance:delete' maintenance.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Description Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ maintenance.description|linebreaks }}</p>
+                {% if maintenance.notes %}
+                    <hr>
+                    <h6 class="text-muted">Additional Notes:</h6>
+                    <p class="mb-0">{{ maintenance.notes|linebreaks }}</p>
+                {% endif %}
+                {% if maintenance.resolution_notes %}
+                    <hr>
+                    <h6 class="text-success"><i class="fas fa-check-circle me-2"></i>Resolution Notes:</h6>
+                    <p class="mb-0 text-success">{{ maintenance.resolution_notes|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Timeline Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Timeline</h5>
+            </div>
+            <div class="card-body">
+                {% for event in timeline %}
+                <div class="d-flex gap-3 mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-circle text-primary" style="font-size: 8px;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">{{ event.label }}</h6>
+                        <p class="text-muted small mb-0">{{ event.timestamp|date:"Y-m-d H:i" }}</p>
+                        {% if event.description %}
+                            <p class="mb-0 mt-1">{{ event.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Attachments Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>Attachments ({{ attachments.count }})</h5>
+                <a href="{% url 'maintenance:attachment_create' maintenance.pk %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-upload me-1"></i>Upload
+                </a>
+            </div>
+            <div class="card-body">
+                {% if attachments %}
+                    <div class="list-group list-group-flush">
+                        {% for attachment in attachments %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if attachment.attachment_type == 'image' %}
+                                        <i class="fas fa-image text-info"></i>
+                                    {% elif attachment.attachment_type == 'document' %}
+                                        <i class="fas fa-file-alt text-primary"></i>
+                                    {% elif attachment.attachment_type == 'invoice' %}
+                                        <i class="fas fa-file-invoice text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-file text-secondary"></i>
+                                    {% endif %}
+                                    <a href="{{ attachment.file.url }}" target="_blank" class="fw-semibold">
+                                        {{ attachment.description|default:attachment.file.name }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    {{ attachment.get_attachment_type_display }} · 
+                                    Uploaded {{ attachment.uploaded_at|date:"Y-m-d H:i" }}
+                                    {% if attachment.uploaded_by %} by {{ attachment.uploaded_by.get_full_name|default:attachment.uploaded_by.username }}{% endif %}
+                                </small>
+                            </div>
+                            <form method="post" action="{% url 'maintenance:attachment_delete' attachment.pk %}" class="ms-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link text-danger p-0" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">No attachments uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Related Requests -->
+        {% if related_requests %}
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Related Requests (Same Property)</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for req in related_requests %}
+                    <a href="{% url 'maintenance:detail' req.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ req.request_number }}</strong> - {{ req.title }}
+                                <div class="text-muted small">{{ req.request_date|date:"Y-m-d" }}</div>
+                            </div>
+                            <span class="badge bg-{{ req.status }}">{{ req.get_status_display }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Cost Summary Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Cost Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Estimated Cost</small>
+                    <h4 class="mb-0">${{ maintenance.estimated_cost|default:'0.00'|floatformat:2 }}</h4>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Actual Cost</small>
+                    <h4 class="mb-0 {% if maintenance.actual_cost %}text-success{% endif %}">
+                        ${{ maintenance.actual_cost|default:'0.00'|floatformat:2 }}
+                    </h4>
+                </div>
+                {% if cost_delta %}
+                    <div class="alert {% if cost_delta > 0 %}alert-danger{% else %}alert-success{% endif %} mb-0">
+                        <strong>Variance:</strong> ${{ cost_delta|floatformat:2 }}
+                        {% if cost_delta > 0 %}
+                            <i class="fas fa-arrow-up"></i> Over budget
+                        {% else %}
+                            <i class="fas fa-arrow-down"></i> Under budget
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignment Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Assignment</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Reported By</small>
+                    <p class="mb-0">
+                        {% if maintenance.reported_by %}
+                            {{ maintenance.reported_by.get_full_name|default:maintenance.reported_by.username }}
+                        {% else %}
+                            <span class="text-muted">Not specified</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mb-0">
+                    <small class="text-muted">Assigned To</small>
+                    <p class="mb-0">
+                        {% if maintenance.assigned_to %}
+                            {{ maintenance.assigned_to.get_full_name|default:maintenance.assigned_to.username }}
+                        {% else %}
+                            <span class="text-muted">Unassigned</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dates Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Important Dates</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Requested</small>
+                    <p class="mb-0">{{ maintenance.request_date|date:"Y-m-d H:i" }}</p>
+                </div>
+                {% if maintenance.scheduled_date %}
+                <div class="mb-3">
+                    <small class="text-muted">Scheduled</small>
+                    <p class="mb-0 {% if maintenance.is_overdue %}text-danger fw-bold{% endif %}">
+                        {{ maintenance.scheduled_date|date:"Y-m-d H:i" }}
+                        {% if maintenance.is_overdue %}
+                            <span class="badge bg-danger ms-2">Overdue</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+                {% if maintenance.completed_date %}
+                <div class="mb-3">
+                    <small class="text-muted">Completed</small>
+                    <p class="mb-0 text-success">{{ maintenance.completed_date|date:"Y-m-d H:i" }}</p>
+                </div>
+                {% endif %}
+                {% if maintenance.get_duration %}
+                <div class="mb-0">
+                    <small class="text-muted">Duration</small>
+                    <p class="mb-0">{{ maintenance.get_duration }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Property Info Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-building me-2"></i>Property</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ maintenance.property.title }}</h6>
+                <p class="text-muted mb-2">{{ maintenance.property.code }}</p>
+                <p class="mb-0">{{ maintenance.property.address }}</p>
+                <p class="text-muted">{{ maintenance.property.city }}</p>
+                <a href="{% url 'properties:detail' maintenance.property.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                    <i class="fas fa-external-link-alt me-1"></i>View Property
+                </a>
+            </div>
+        </div>
+
+        <!-- Preventive Schedules -->
+        {% if schedules %}
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Preventive Schedules</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for schedule in schedules %}
+                    <div class="list-group-item px-0">
+                        <strong>{{ schedule.title }}</strong>
+                        <div class="text-muted small">
+                            {{ schedule.get_frequency_display }} · 
+                            Next: {{ schedule.next_service_date }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'maintenance:list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to List
+    </a>
+</div>
+{% endblock %}

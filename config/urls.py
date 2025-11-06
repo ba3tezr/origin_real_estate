@@ -20,8 +20,9 @@ urlpatterns += i18n_patterns(
     path('properties/', include('apps.properties.urls')),
     path('contracts/', include('apps.contracts.urls')),
     path('maintenance/', include('apps.maintenance.urls')),
+    path('financial/', include('apps.financial.urls')),
     # path('reports/', include('apps.reports.urls')),  # TODO: قيد التطوير
-    # path('api/', include('api.urls')),  # TODO: قيد التطوير
+    path('api/v1/', include('api.urls')),  # REST API
 )
 
 # Serve media files in development
