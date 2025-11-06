@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Properties Map{% endblock %}
+{% block page_title %}Properties Map{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+4wG8u1J5rG32nPxM90YzH5fV7kPaWY5Av2P3I1Cw=" crossorigin="" />
+<style>
+    #propertiesMap { height: 70vh; border-radius: 1rem; }
+    .map-sidebar { max-height: 70vh; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Listing
+    </a>
+    <a href="{% url 'properties:dashboard' %}" class="btn btn-outline-primary">
+        <i class="fas fa-chart-line me-2"></i>Analytics Dashboard
+    </a>
+    <span class="badge bg-success align-self-center">{{ total_with_coordinates }} / {{ total_properties }} mapped</span>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div id="propertiesMap"></div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm map-sidebar">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Property Pins</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="propertyList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-vkBUGRj0C1X0iLHwQdHVR9zN1C6i9gATeO1j9C8gIKA=" crossorigin=""></script>
+{{ property_markers|json_script:"marker-data" }}
+<script>
+    const markerData = JSON.parse(document.getElementById('marker-data').textContent);
+    const map = L.map('propertiesMap').setView([24.7136, 46.6753], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const markers = [];
+    const listContainer = document.getElementById('propertyList');
+
+    markerData.forEach((property) => {
+        const marker = L.marker([property.latitude, property.longitude]).addTo(map);
+        marker.bindPopup(`
+            <div class="p-1">
+                <strong>${property.code}</strong><br>
+                ${property.title}<br>
+                <span class="badge bg-primary">${property.type}</span>
+                <div class="text-muted small">${property.city}</div>
+                ${property.url ? `<a href="${property.url}" class="btn btn-sm btn-primary mt-2">View Details</a>` : ''}
+            </div>
+        `);
+        markers.push(marker);
+
+        const item = document.createElement('a');
+        item.href = property.url || '#';
+        item.className = 'list-group-item list-group-item-action';
+        item.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <div>
+                    <strong>${property.code}</strong>
+                    <div class="text-muted small">${property.title}</div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-info text-dark">${property.status}</span>
+                    ${property.rent ? `<div class="text-muted small">$${property.rent.toLocaleString()}</div>` : ''}
+                </div>
+            </div>
+        `;
+        item.addEventListener('mouseenter', () => marker.openPopup());
+        listContainer.appendChild(item);
+    });
+
+    if (markers.length) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+    }
+</script>
+{% endblock %}

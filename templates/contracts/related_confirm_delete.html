@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete item{% endblock %}
+{% block page_title %}Delete item{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Confirm deletion</h5>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete <strong>{{ object_name }}</strong>?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </button>
+                        <a href="{% url 'contracts:detail' contract.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

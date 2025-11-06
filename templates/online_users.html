@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Online Users{% endblock %}
+{% block page_title %}Online Users{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-users fa-4x text-primary mb-4"></i>
+        <h3>Online Users Feature</h3>
+        <p class="text-muted mb-4">{{ message }}</p>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            This feature is <strong>under development</strong> and will be available soon with WebSocket support.
+        </div>
+        <p class="text-muted mt-3">Planned features:</p>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-check text-success me-2"></i>Real-time user presence</li>
+            <li><i class="fas fa-check text-success me-2"></i>Active sessions tracking</li>
+            <li><i class="fas fa-check text-success me-2"></i>User activity status</li>
+            <li><i class="fas fa-check text-success me-2"></i>Direct messaging</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

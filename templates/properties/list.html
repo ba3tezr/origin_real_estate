@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Properties{% endblock %}
+{% block page_title %}Properties Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge.status-available { background-color: #22c55e; }
+    .status-badge.status-rented { background-color: #3b82f6; }
+    .status-badge.status-maintenance { background-color: #f59e0b; color: #111; }
+    .status-badge.status-sold { background-color: #6b7280; }
+    .property-card .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .status-available { background-color: #22c55e; }
+    .status-rented { background-color: #3b82f6; }
+    .status-maintenance { background-color: #f59e0b; }
+    .status-sold { background-color: #6b7280; }
+    .metric { background-color: #f3f4f6; border-radius: 0.75rem; padding: 0.5rem; }
+    @media (max-width: 991px) {
+        .filter-form { max-height: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+    <a href="{% url 'properties:create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Property
+    </a>
+    <a href="{% url 'properties:type_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-sitemap me-2"></i>Manage Types
+    </a>
+    <a href="{% url 'properties:dashboard' %}" class="btn btn-outline-primary">
+        <i class="fas fa-chart-line me-2"></i>Analytics
+    </a>
+    <a href="{% url 'properties:map' %}" class="btn btn-outline-success">
+        <i class="fas fa-map-marked-alt me-2"></i>Map View
+    </a>
+    <div class="ms-auto d-flex flex-wrap gap-2">
+        <span class="badge bg-primary">Total: {{ total_count }}</span>
+        <span class="badge bg-success">Active: {{ active_count }}</span>
+        <span class="badge bg-info text-dark">Available: {{ available_count }}</span>
+        <span class="badge bg-secondary">Rented: {{ rented_count }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h6>
+                {% if filter_applied %}
+                <span class="badge bg-primary">Active</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <form method="get" class="filter-form" id="filterForm">
+                    <input type="hidden" name="sort" value="{{ sort_option }}">
+                    <input type="hidden" name="display" value="{{ display_mode }}">
+                    <div class="mb-3">
+                        <label class="form-label">Search</label>
+                        {{ search_form.search }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Property Type</label>
+                        {{ search_form.property_type }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        {{ search_form.status }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">City</label>
+                        {{ search_form.city }}
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Min Rent</label>
+                            {{ search_form.min_rent }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Max Rent</label>
+                            {{ search_form.max_rent }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bedrooms</label>
+                        {{ search_form.bedrooms }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Furnished</label>
+                        {{ search_form.is_furnished }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100" form="filterForm">
+                    <i class="fas fa-filter me-2"></i>Apply
+                </button>
+                <a href="{% url 'properties:list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-redo me-2"></i>Reset
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-9">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+                <h6 class="mb-0"><i class="fas fa-building me-2"></i>Properties</h6>
+                <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+                    <form id="sortForm" method="get">
+                        {% for key, value in request.GET.items %}
+                            {% if key != 'sort' %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="newest" {% if sort_option == 'newest' %}selected{% endif %}>Newest</option>
+                            <option value="oldest" {% if sort_option == 'oldest' %}selected{% endif %}>Oldest</option>
+                            <option value="code" {% if sort_option == 'code' %}selected{% endif %}>Code</option>
+                            <option value="title" {% if sort_option == 'title' %}selected{% endif %}>Title</option>
+                            <option value="rent_high" {% if sort_option == 'rent_high' %}selected{% endif %}>Rent (High → Low)</option>
+                            <option value="rent_low" {% if sort_option == 'rent_low' %}selected{% endif %}>Rent (Low → High)</option>
+                            <option value="area_high" {% if sort_option == 'area_high' %}selected{% endif %}>Area (High → Low)</option>
+                            <option value="area_low" {% if sort_option == 'area_low' %}selected{% endif %}>Area (Low → High)</option>
+                        </select>
+                    </form>
+                    <div class="btn-group" role="group">
+                        <a href="?{{ table_querystring }}" class="btn btn-sm {% if display_mode == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                            <i class="fas fa-list"></i>
+                        </a>
+                        <a href="?{{ grid_querystring }}" class="btn btn-sm {% if display_mode == 'grid' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                            <i class="fas fa-th"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if properties %}
+                    {% if display_mode == 'grid' %}
+                        <div class="row g-3">
+                            {% for property in properties %}
+                            <div class="col-md-6 col-xxl-4">
+                                <div class="card property-card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <span class="badge bg-light text-dark">{{ property.code }}</span>
+                                                <h5 class="mt-2 mb-1">{{ property.title }}</h5>
+                                                <span class="badge bg-info text-dark">{{ property.property_type.name }}</span>
+                                            </div>
+                                            <span class="status-dot status-{{ property.status }}" title="{{ property.get_status_display }}"></span>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            <i class="fas fa-location-dot me-2"></i>{{ property.city }}{% if property.district %}, {{ property.district }}{% endif %}
+                                        </p>
+                                        <div class="row g-2 text-center">
+                                            <div class="col-4">
+                                                <div class="metric">
+                                                    <small class="text-muted">Rent</small>
+                                                    <div class="fw-semibold">${{ property.rental_price_monthly|default_if_none:"-" }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="metric">
+                                                    <small class="text-muted">Area</small>
+                                                    <div class="fw-semibold">{{ property.area_sqm }} m²</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="metric">
+                                                    <small class="text-muted">ROI</small>
+                                                    <div class="fw-semibold">{% if property.average_roi %}{{ property.average_roi|floatformat:1 }}%{% else %}-{% endif %}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-light d-flex justify-content-between">
+                                        <div class="form-check">
+                                            <input class="form-check-input bulk-checkbox" type="checkbox" value="{{ property.pk }}">
+                                            <label class="form-check-label">Select</label>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'properties:detail' property.pk %}" class="btn btn-outline-secondary"><i class="fas fa-eye"></i></a>
+                                            <a href="{% url 'properties:update' property.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </th>
+                                        <th>Code</th>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Owner</th>
+                                        <th>City</th>
+                                        <th>Status</th>
+                                        <th>Rent</th>
+                                        <th>Area</th>
+                                        <th>Active</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for property in properties %}
+                                    <tr>
+                                        <td>
+                                            <input class="form-check-input bulk-checkbox" type="checkbox" value="{{ property.pk }}">
+                                        </td>
+                                        <td><strong>{{ property.code }}</strong></td>
+                                        <td>{{ property.title }}</td>
+                                        <td><span class="badge bg-info">{{ property.property_type.name }}</span></td>
+                                        <td>{{ property.owner.name }}</td>
+                                        <td>{{ property.city }}</td>
+                                        <td>
+                                            <span class="badge status-badge status-{{ property.status }}">{{ property.get_status_display }}</span>
+                                        </td>
+                                        <td>${{ property.rental_price_monthly|default_if_none:"-" }}</td>
+                                        <td>{{ property.area_sqm }} m²</td>
+                                        <td>
+                                            {% if property.is_active %}
+                                                <span class="badge bg-success">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'properties:detail' property.pk %}" class="btn btn-outline-secondary"><i class="fas fa-eye"></i></a>
+                                                <a href="{% url 'properties:update' property.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if properties.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if properties.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page=1{% else %}page=1{% endif %}">First</a></li>
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ properties.previous_page_number }}{% else %}page={{ properties.previous_page_number }}{% endif %}">Previous</a></li>
+                                {% endif %}
+                                <li class="page-item active"><span class="page-link">Page {{ properties.number }} of {{ properties.paginator.num_pages }}</span></li>
+                                {% if properties.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ properties.next_page_number }}{% else %}page={{ properties.next_page_number }}{% endif %}">Next</a></li>
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ properties.paginator.num_pages }}{% else %}page={{ properties.paginator.num_pages }}{% endif %}">Last</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-building fa-4x text-muted mb-3"></i>
+                        <h4>No properties found</h4>
+                        <p class="text-muted">Try adjusting filters or add a new property.</p>
+                        <a href="{% url 'properties:create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Property</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light d-flex flex-wrap gap-2 align-items-center">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="bulkExport" disabled>
+                        <i class="fas fa-file-export me-2"></i>Export
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="bulkDeactivate" disabled>
+                        <i class="fas fa-ban me-2"></i>Deactivate
+                    </button>
+                </div>
+                <span class="text-muted small ms-auto">Bulk actions coming soon</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const selectAll = document.getElementById('selectAll');
+    const bulkCheckboxes = document.querySelectorAll('.bulk-checkbox');
+    const bulkButtons = [document.getElementById('bulkExport'), document.getElementById('bulkDeactivate')];
+
+    function updateBulkButtons() {
+        const anyChecked = Array.from(bulkCheckboxes).some((checkbox) => checkbox.checked);
+        bulkButtons.forEach((btn) => {
+            if (btn) {
+                btn.disabled = !anyChecked;
+            }
+        });
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', (event) => {
+            bulkCheckboxes.forEach((checkbox) => {
+                checkbox.checked = event.target.checked;
+            });
+            updateBulkButtons();
+        });
+    }
+
+    bulkCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', updateBulkButtons);
+    });
+
+    bulkButtons.forEach((btn) => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Coming Soon',
+                    text: 'Bulk actions will be available in a future update.',
+                    confirmButtonColor: '#1E3A8A'
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

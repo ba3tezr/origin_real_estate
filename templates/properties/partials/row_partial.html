@@ -1,0 +1,44 @@
+<tr id="property-row-{{ property.pk }}">
+    <td><strong>{{ property.code }}</strong></td>
+    <td>{{ property.title }}</td>
+    <td><span class="badge bg-info">{{ property.property_type.name }}</span></td>
+    <td>{{ property.owner.name }}</td>
+    <td>{{ property.city }}</td>
+    <td>
+        {% if property.status == 'available' %}
+            <span class="badge bg-success">Available</span>
+        {% elif property.status == 'rented' %}
+            <span class="badge bg-primary">Rented</span>
+        {% elif property.status == 'maintenance' %}
+            <span class="badge bg-warning text-dark">Maintenance</span>
+        {% else %}
+            <span class="badge bg-secondary">{{ property.get_status_display }}</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if property.rental_price_monthly %}
+            ${{ property.rental_price_monthly|floatformat:2 }}
+        {% else %}-{% endif %}
+    </td>
+    <td>{{ property.area_sqm }}</td>
+    <td>
+        {% if property.is_active %}
+            <span class="badge bg-success">Yes</span>
+        {% else %}
+            <span class="badge bg-secondary">No</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="btn-group btn-group-sm">
+            <a href="{% url 'properties:detail' property.pk %}" class="btn btn-info" title="View">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{% url 'properties:update' property.pk %}" class="btn btn-warning" title="Edit">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'properties:delete' property.pk %}" class="btn btn-danger" title="Delete">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>

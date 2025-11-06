@@ -1,0 +1,237 @@
+🚀 Starting Origin App Real Estate System...
+==========================================
+🔧 Activating virtual environment...
+📦 Installing dependencies...
+🗄️  Running database migrations...
+No changes detected
+Operations to perform:
+  Apply all migrations: admin, auth, authtoken, clients, contenttypes, contracts, core, maintenance, owners, properties, sessions
+Running migrations:
+  No migrations to apply.
+📁 Collecting static files...
+Deleting 'django-htmx.js'
+Deleting 'css/colors.css'
+Deleting 'css/base.css'
+Deleting 'admin/css/autocomplete.css'
+Deleting 'admin/css/base.css'
+Deleting 'admin/css/changelists.css'
+Deleting 'admin/css/dark_mode.css'
+Deleting 'admin/css/dashboard.css'
+Deleting 'admin/css/forms.css'
+Deleting 'admin/css/login.css'
+Deleting 'admin/css/nav_sidebar.css'
+Deleting 'admin/css/responsive.css'
+Deleting 'admin/css/responsive_rtl.css'
+Deleting 'admin/css/rtl.css'
+Deleting 'admin/css/widgets.css'
+Deleting 'admin/css/vendor/select2/LICENSE-SELECT2.md'
+Deleting 'admin/css/vendor/select2/select2.css'
+Deleting 'admin/css/vendor/select2/select2.min.css'
+Deleting 'admin/img/LICENSE'
+Deleting 'admin/img/README.txt'
+Deleting 'admin/img/calendar-icons.svg'
+Deleting 'admin/img/icon-addlink.svg'
+Deleting 'admin/img/icon-alert.svg'
+Deleting 'admin/img/icon-calendar.svg'
+Deleting 'admin/img/icon-changelink.svg'
+Deleting 'admin/img/icon-clock.svg'
+Deleting 'admin/img/icon-deletelink.svg'
+Deleting 'admin/img/icon-hidelink.svg'
+Deleting 'admin/img/icon-no.svg'
+Deleting 'admin/img/icon-unknown-alt.svg'
+Deleting 'admin/img/icon-unknown.svg'
+Deleting 'admin/img/icon-viewlink.svg'
+Deleting 'admin/img/icon-yes.svg'
+Deleting 'admin/img/inline-delete.svg'
+Deleting 'admin/img/search.svg'
+Deleting 'admin/img/selector-icons.svg'
+Deleting 'admin/img/sorting-icons.svg'
+Deleting 'admin/img/tooltag-add.svg'
+Deleting 'admin/img/tooltag-arrowright.svg'
+Deleting 'admin/img/gis/move_vertex_off.svg'
+Deleting 'admin/img/gis/move_vertex_on.svg'
+Deleting 'admin/js/SelectBox.js'
+Deleting 'admin/js/SelectFilter2.js'
+Deleting 'admin/js/actions.js'
+Deleting 'admin/js/autocomplete.js'
+Deleting 'admin/js/calendar.js'
+Deleting 'admin/js/cancel.js'
+Deleting 'admin/js/change_form.js'
+Deleting 'admin/js/collapse.js'
+Deleting 'admin/js/core.js'
+Deleting 'admin/js/filters.js'
+Deleting 'admin/js/inlines.js'
+Deleting 'admin/js/jquery.init.js'
+Deleting 'admin/js/nav_sidebar.js'
+Deleting 'admin/js/popup_response.js'
+Deleting 'admin/js/prepopulate.js'
+Deleting 'admin/js/prepopulate_init.js'
+Deleting 'admin/js/theme.js'
+Deleting 'admin/js/urlify.js'
+Deleting 'admin/js/admin/DateTimeShortcuts.js'
+Deleting 'admin/js/admin/RelatedObjectLookups.js'
+Deleting 'admin/js/vendor/jquery/LICENSE.txt'
+Deleting 'admin/js/vendor/jquery/jquery.js'
+Deleting 'admin/js/vendor/jquery/jquery.min.js'
+Deleting 'admin/js/vendor/select2/LICENSE.md'
+Deleting 'admin/js/vendor/select2/select2.full.js'
+Deleting 'admin/js/vendor/select2/select2.full.min.js'
+Deleting 'admin/js/vendor/select2/i18n/af.js'
+Deleting 'admin/js/vendor/select2/i18n/ar.js'
+Deleting 'admin/js/vendor/select2/i18n/az.js'
+Deleting 'admin/js/vendor/select2/i18n/bg.js'
+Deleting 'admin/js/vendor/select2/i18n/bn.js'
+Deleting 'admin/js/vendor/select2/i18n/bs.js'
+Deleting 'admin/js/vendor/select2/i18n/ca.js'
+Deleting 'admin/js/vendor/select2/i18n/cs.js'
+Deleting 'admin/js/vendor/select2/i18n/da.js'
+Deleting 'admin/js/vendor/select2/i18n/de.js'
+Deleting 'admin/js/vendor/select2/i18n/dsb.js'
+Deleting 'admin/js/vendor/select2/i18n/el.js'
+Deleting 'admin/js/vendor/select2/i18n/en.js'
+Deleting 'admin/js/vendor/select2/i18n/es.js'
+Deleting 'admin/js/vendor/select2/i18n/et.js'
+Deleting 'admin/js/vendor/select2/i18n/eu.js'
+Deleting 'admin/js/vendor/select2/i18n/fa.js'
+Deleting 'admin/js/vendor/select2/i18n/fi.js'
+Deleting 'admin/js/vendor/select2/i18n/fr.js'
+Deleting 'admin/js/vendor/select2/i18n/gl.js'
+Deleting 'admin/js/vendor/select2/i18n/he.js'
+Deleting 'admin/js/vendor/select2/i18n/hi.js'
+Deleting 'admin/js/vendor/select2/i18n/hr.js'
+Deleting 'admin/js/vendor/select2/i18n/hsb.js'
+Deleting 'admin/js/vendor/select2/i18n/hu.js'
+Deleting 'admin/js/vendor/select2/i18n/hy.js'
+Deleting 'admin/js/vendor/select2/i18n/id.js'
+Deleting 'admin/js/vendor/select2/i18n/is.js'
+Deleting 'admin/js/vendor/select2/i18n/it.js'
+Deleting 'admin/js/vendor/select2/i18n/ja.js'
+Deleting 'admin/js/vendor/select2/i18n/ka.js'
+Deleting 'admin/js/vendor/select2/i18n/km.js'
+Deleting 'admin/js/vendor/select2/i18n/ko.js'
+Deleting 'admin/js/vendor/select2/i18n/lt.js'
+Deleting 'admin/js/vendor/select2/i18n/lv.js'
+Deleting 'admin/js/vendor/select2/i18n/mk.js'
+Deleting 'admin/js/vendor/select2/i18n/ms.js'
+Deleting 'admin/js/vendor/select2/i18n/nb.js'
+Deleting 'admin/js/vendor/select2/i18n/ne.js'
+Deleting 'admin/js/vendor/select2/i18n/nl.js'
+Deleting 'admin/js/vendor/select2/i18n/pl.js'
+Deleting 'admin/js/vendor/select2/i18n/ps.js'
+Deleting 'admin/js/vendor/select2/i18n/pt-BR.js'
+Deleting 'admin/js/vendor/select2/i18n/pt.js'
+Deleting 'admin/js/vendor/select2/i18n/ro.js'
+Deleting 'admin/js/vendor/select2/i18n/ru.js'
+Deleting 'admin/js/vendor/select2/i18n/sk.js'
+Deleting 'admin/js/vendor/select2/i18n/sl.js'
+Deleting 'admin/js/vendor/select2/i18n/sq.js'
+Deleting 'admin/js/vendor/select2/i18n/sr-Cyrl.js'
+Deleting 'admin/js/vendor/select2/i18n/sr.js'
+Deleting 'admin/js/vendor/select2/i18n/sv.js'
+Deleting 'admin/js/vendor/select2/i18n/th.js'
+Deleting 'admin/js/vendor/select2/i18n/tk.js'
+Deleting 'admin/js/vendor/select2/i18n/tr.js'
+Deleting 'admin/js/vendor/select2/i18n/uk.js'
+Deleting 'admin/js/vendor/select2/i18n/vi.js'
+Deleting 'admin/js/vendor/select2/i18n/zh-CN.js'
+Deleting 'admin/js/vendor/select2/i18n/zh-TW.js'
+Deleting 'admin/js/vendor/xregexp/LICENSE.txt'
+Deleting 'admin/js/vendor/xregexp/xregexp.js'
+Deleting 'admin/js/vendor/xregexp/xregexp.min.js'
+Deleting 'rest_framework/css/bootstrap-theme.min.css'
+Deleting 'rest_framework/css/bootstrap-theme.min.css.map'
+Deleting 'rest_framework/css/bootstrap-tweaks.css'
+Deleting 'rest_framework/css/bootstrap.min.css'
+Deleting 'rest_framework/css/bootstrap.min.css.map'
+Deleting 'rest_framework/css/default.css'
+Deleting 'rest_framework/css/font-awesome-4.0.3.css'
+Deleting 'rest_framework/css/prettify.css'
+Deleting 'rest_framework/docs/css/base.css'
+Deleting 'rest_framework/docs/css/highlight.css'
+Deleting 'rest_framework/docs/css/jquery.json-view.min.css'
+Deleting 'rest_framework/docs/img/favicon.ico'
+Deleting 'rest_framework/docs/img/grid.png'
+Deleting 'rest_framework/docs/js/api.js'
+Deleting 'rest_framework/docs/js/highlight.pack.js'
+Deleting 'rest_framework/docs/js/jquery.json-view.min.js'
+Deleting 'rest_framework/fonts/fontawesome-webfont.eot'
+Deleting 'rest_framework/fonts/fontawesome-webfont.svg'
+Deleting 'rest_framework/fonts/fontawesome-webfont.ttf'
+Deleting 'rest_framework/fonts/fontawesome-webfont.woff'
+Deleting 'rest_framework/fonts/glyphicons-halflings-regular.eot'
+Deleting 'rest_framework/fonts/glyphicons-halflings-regular.svg'
+Deleting 'rest_framework/fonts/glyphicons-halflings-regular.ttf'
+Deleting 'rest_framework/fonts/glyphicons-halflings-regular.woff'
+Deleting 'rest_framework/fonts/glyphicons-halflings-regular.woff2'
+Deleting 'rest_framework/img/glyphicons-halflings-white.png'
+Deleting 'rest_framework/img/glyphicons-halflings.png'
+Deleting 'rest_framework/img/grid.png'
+Deleting 'rest_framework/js/ajax-form.js'
+Deleting 'rest_framework/js/bootstrap.min.js'
+Deleting 'rest_framework/js/coreapi-0.1.1.js'
+Deleting 'rest_framework/js/csrf.js'
+Deleting 'rest_framework/js/default.js'
+Deleting 'rest_framework/js/jquery-3.5.1.min.js'
+Deleting 'rest_framework/js/prettify-min.js'
+
+164 static files copied to '/home/zakee/erp systems/origin app real estate/staticfiles'.
+📊 Checking for sample data...
+[0;32m✓ Sample data already exists[0m
+
+==========================================
+[0;32m✅ Setup completed successfully![0m
+==========================================
+
+🌐 Starting Django development server...
+
+[0;32mAdmin Credentials:[0m
+  Username: admin
+  Password: admin123
+
+[0;32mLocal Access:[0m
+  http://127.0.0.1:8000
+
+[1;33mPress Ctrl+C to stop the server[0m
+==========================================
+
+Watching for file changes with StatReloader
+[05/Nov/2025 12:54:30] "GET / HTTP/1.1" 302 0
+[05/Nov/2025 12:54:30] "GET /en/ HTTP/1.1" 302 0
+[05/Nov/2025 12:54:31] "GET /en/login/?next=/en/ HTTP/1.1" 200 7951
+[05/Nov/2025 12:54:32] "GET /static/css/colors.css HTTP/1.1" 200 5279
+Not Found: /favicon.ico
+[05/Nov/2025 12:54:36] "GET /favicon.ico HTTP/1.1" 404 2609
+[05/Nov/2025 13:39:01] "POST /en/login/ HTTP/1.1" 302 0
+[05/Nov/2025 13:39:02] "GET /en/ HTTP/1.1" 200 21373
+[05/Nov/2025 13:39:03] "GET /static/css/base.css HTTP/1.1" 200 5074
+[05/Nov/2025 13:41:27] "GET /en/ HTTP/1.1" 302 0
+[05/Nov/2025 13:41:28] "GET /en/login/?next=/en/ HTTP/1.1" 200 7951
+[05/Nov/2025 13:41:29] "GET /static/css/colors.css HTTP/1.1" 200 5279
+Not Found: /favicon.ico
+[05/Nov/2025 13:41:30] "GET /favicon.ico HTTP/1.1" 404 2609
+[05/Nov/2025 13:41:49] "POST /en/login/ HTTP/1.1" 302 0
+[05/Nov/2025 13:41:49] "GET /en/ HTTP/1.1" 200 21373
+[05/Nov/2025 13:41:50] "GET /static/css/base.css HTTP/1.1" 200 5074
+[05/Nov/2025 14:23:53] "GET /en/ HTTP/1.1" 302 0
+[05/Nov/2025 14:23:54] "GET /en/login/?next=/en/ HTTP/1.1" 200 7951
+Not Found: /favicon.ico
+[05/Nov/2025 14:23:58] "GET /favicon.ico HTTP/1.1" 404 2609
+[05/Nov/2025 14:24:01] "POST /en/login/ HTTP/1.1" 302 0
+[05/Nov/2025 14:24:01] "GET /en/ HTTP/1.1" 200 21373
+[05/Nov/2025 14:56:33] "GET /en/properties/ HTTP/1.1" 200 34756
+[05/Nov/2025 14:56:50] "GET /en/contracts/ HTTP/1.1" 200 21972
+[05/Nov/2025 14:56:59] "GET /en/maintenance/ HTTP/1.1" 200 34194
+[05/Nov/2025 14:57:03] "GET /en/owners/ HTTP/1.1" 200 16225
+[05/Nov/2025 14:57:10] "GET /en/clients/ HTTP/1.1" 200 19804
+[05/Nov/2025 14:57:15] "GET /en/properties/ HTTP/1.1" 200 34756
+[05/Nov/2025 14:57:20] "GET /en/properties/types/ HTTP/1.1" 200 16512
+[05/Nov/2025 14:57:24] "GET /en/ HTTP/1.1" 200 20456
+[05/Nov/2025 15:05:39] "GET /en/properties/ HTTP/1.1" 200 34756
+[05/Nov/2025 15:05:39] "GET /en/properties/ HTTP/1.1" 200 34756
+[05/Nov/2025 15:05:40] "GET /static/css/colors.css HTTP/1.1" 304 0
+[05/Nov/2025 15:05:40] "GET /static/css/base.css HTTP/1.1" 304 0
+[05/Nov/2025 15:05:55] "GET /en/properties/12/ HTTP/1.1" 200 14169
+[05/Nov/2025 15:13:50] "GET /en/contracts/ HTTP/1.1" 200 21972
+[05/Nov/2025 15:13:51] "GET /en/contracts/ HTTP/1.1" 200 21972
+[05/Nov/2025 15:13:55] "GET /en/maintenance/ HTTP/1.1" 200 34194
+[05/Nov/2025 15:25:01] "GET /en/ HTTP/1.1" 200 20456

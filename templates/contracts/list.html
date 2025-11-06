@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contracts{% endblock %}
+{% block page_title %}Contracts Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge.status-active { background-color: #22c55e; }
+    .status-badge.status-expired { background-color: #ef4444; }
+    .status-badge.status-draft { background-color: #6b7280; }
+    .status-badge.status-terminated { background-color: #f59e0b; color: #111827; }
+    .status-badge.status-renewed { background-color: #3b82f6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+    <a href="{% url 'contracts:create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Contract
+    </a>
+    <div class="ms-auto d-flex flex-wrap gap-2">
+        <span class="badge bg-primary">Total: {{ total_count }}</span>
+        <span class="badge bg-success">Active: {{ active_count }}</span>
+        <span class="badge bg-warning text-dark">Expiring ≤ 30d: {{ expiring_soon_count }}</span>
+        <span class="badge bg-danger">Overdue: {{ overdue_contracts_count }}</span>
+        <span class="badge bg-info text-dark">Pending payments: {{ pending_payments_count }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h6>
+                {% if filter_applied %}<span class="badge bg-primary">Active</span>{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="get" id="contractFilterForm" class="filter-form">
+                    <input type="hidden" name="sort" value="{{ sort_option }}">
+                    <div class="mb-3">
+                        <label class="form-label">Search</label>
+                        {{ search_form.search }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        {{ search_form.status }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        {{ search_form.contract_type }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Frequency</label>
+                        {{ search_form.payment_frequency }}
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label">Start From</label>
+                            {{ search_form.start_from }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Start To</label>
+                            {{ search_form.start_to }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">End From</label>
+                            {{ search_form.end_from }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">End To</label>
+                            {{ search_form.end_to }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100" form="contractFilterForm">
+                    <i class="fas fa-filter me-2"></i>Apply
+                </button>
+                <a href="{% url 'contracts:list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-redo me-2"></i>Reset
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-9">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+                <h6 class="mb-0"><i class="fas fa-file-contract me-2"></i>Contracts</h6>
+                <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+                    <form method="get" id="contractSortForm">
+                        {% for key, value in request.GET.items %}
+                            {% if key != 'sort' %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="start_desc" {% if sort_option == 'start_desc' %}selected{% endif %}>Start date (newest)</option>
+                            <option value="start_asc" {% if sort_option == 'start_asc' %}selected{% endif %}>Start date (oldest)</option>
+                            <option value="end_desc" {% if sort_option == 'end_desc' %}selected{% endif %}>End date (latest)</option>
+                            <option value="end_asc" {% if sort_option == 'end_asc' %}selected{% endif %}>End date (soonest)</option>
+                            <option value="rent_high" {% if sort_option == 'rent_high' %}selected{% endif %}>Rent (high → low)</option>
+                            <option value="rent_low" {% if sort_option == 'rent_low' %}selected{% endif %}>Rent (low → high)</option>
+                            <option value="created_new" {% if sort_option == 'created_new' %}selected{% endif %}>Recently created</option>
+                            <option value="created_old" {% if sort_option == 'created_old' %}selected{% endif %}>Oldest created</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if contracts %}
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Contract #</th>
+                                    <th>Property</th>
+                                    <th>Client</th>
+                                    <th>Type</th>
+                                    <th>Period</th>
+                                    <th class="text-end">Rent</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in contracts %}
+                                <tr>
+                                    <td><strong>{{ contract.contract_number }}</strong></td>
+                                    <td>{{ contract.property.title }}</td>
+                                    <td>{{ contract.client.name }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ contract.get_contract_type_display }}</span></td>
+                                    <td>{{ contract.start_date|date:"Y-m-d" }} → {{ contract.end_date|date:"Y-m-d" }}</td>
+                                    <td class="text-end">${{ contract.rent_amount|floatformat:2 }}</td>
+                                    <td><span class="badge status-badge status-{{ contract.status }}">{{ contract.get_status_display }}</span></td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'contracts:detail' contract.pk %}" class="btn btn-outline-secondary"><i class="fas fa-eye"></i></a>
+                                            <a href="{% url 'contracts:update' contract.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if contracts.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if contracts.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page=1{% else %}page=1{% endif %}">First</a></li>
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ contracts.previous_page_number }}{% else %}page={{ contracts.previous_page_number }}{% endif %}">Previous</a></li>
+                                {% endif %}
+                                <li class="page-item active"><span class="page-link">Page {{ contracts.number }} of {{ contracts.paginator.num_pages }}</span></li>
+                                {% if contracts.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ contracts.next_page_number }}{% else %}page={{ contracts.next_page_number }}{% endif %}">Next</a></li>
+                                    <li class="page-item"><a class="page-link" href="?{% if pagination_querystring %}{{ pagination_querystring }}&page={{ contracts.paginator.num_pages }}{% else %}page={{ contracts.paginator.num_pages }}{% endif %}">Last</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-contract fa-4x text-muted mb-3"></i>
+                        <h4>No contracts found</h4>
+                        <p class="text-muted">Try adjusting filters or add a new contract.</p>
+                        <a href="{% url 'contracts:create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Contract</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light d-flex flex-wrap gap-3 align-items-center">
+                <div>
+                    <strong>Filtered Rent Total:</strong> ${{ filtered_rent_value|floatformat:2 }}
+                </div>
+                <div>
+                    <span class="text-muted">Portfolio Rent Total: ${{ total_rent_value|floatformat:2 }}</span>
+                </div>
+                <span class="text-muted small ms-auto">Bulk contract actions coming soon</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

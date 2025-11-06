@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Maintenance{% endblock %}
+{% block page_title %}Maintenance Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <a href="{% url 'maintenance:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add Maintenance Request
+        </a>
+    </div>
+    <div class="col-md-4 text-end">
+        <span class="badge bg-primary me-2">Total: {{ total_count }}</span>
+        <span class="badge bg-warning">Pending: {{ pending_count }}</span>
+    </div>
+</div>
+
+<!-- Search & Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                {{ search_form.search }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.status }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.priority }}
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a href="{% url 'maintenance:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Maintenance Table -->
+<div class="card">
+    <div class="card-body">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Request #</th>
+                            <th>Property</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Scheduled Date</th>
+                            <th>Cost Estimate</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td><strong>{{ request.request_number|default:"N/A" }}</strong></td>
+                            <td>{{ request.property.title }}</td>
+                            <td>{{ request.title }}</td>
+                            <td>
+                                {% if request.category %}
+                                    <span class="badge bg-info">{{ request.category.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.priority == 'urgent' %}
+                                    <span class="badge bg-danger">Urgent</span>
+                                {% elif request.priority == 'high' %}
+                                    <span class="badge bg-warning">High</span>
+                                {% elif request.priority == 'medium' %}
+                                    <span class="badge bg-primary">Medium</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Low</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif request.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                {% elif request.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.scheduled_date %}
+                                    {{ request.scheduled_date|date:"Y-m-d H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Not scheduled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.estimated_cost %}
+                                    ${{ request.estimated_cost|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'maintenance:update' request.pk %}" class="btn btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'maintenance:delete' request.pk %}" class="btn btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if requests.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if requests.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ requests.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ requests.number }} of {{ requests.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if requests.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ requests.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ requests.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-tools fa-4x text-muted mb-3"></i>
+                <h4>No Maintenance Requests Found</h4>
+                <p class="text-muted">Start by adding your first maintenance request</p>
+                <a href="{% url 'maintenance:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Request
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

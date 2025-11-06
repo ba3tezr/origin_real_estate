@@ -1,0 +1,29 @@
+[
+  {
+    "model": "properties.propertytype",
+    "pk": 1,
+    "fields": {
+      "name": "Apartment",
+      "description": "Residential apartment units",
+      "is_active": true
+    }
+  },
+  {
+    "model": "properties.propertytype",
+    "pk": 2,
+    "fields": {
+      "name": "Villa",
+      "description": "Standalone villa properties",
+      "is_active": true
+    }
+  },
+  {
+    "model": "properties.propertytype",
+    "pk": 3,
+    "fields": {
+      "name": "Commercial",
+      "description": "Commercial office spaces",
+      "is_active": true
+    }
+  }
+]
