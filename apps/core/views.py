@@ -131,10 +131,10 @@ def dashboard(request):
         end_date__gte=today
     ).select_related('property', 'client')[:5]
     
-    # Overdue invoices (issued but not paid)
+    # Overdue invoices (issued but not paid for 30+ days)
     overdue_invoices = Invoice.objects.filter(
         status='issued',
-        issue_date__lt=today - timedelta(days=30)
+        invoice_date__lt=today - timedelta(days=30)
     )[:5]
     
     # ============ CHART DATA ============
