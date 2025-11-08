@@ -20,7 +20,7 @@ def dashboard(request):
     from apps.properties.models import Property
     from apps.contracts.models import Contract
     from apps.maintenance.models import MaintenanceRequest
-    from apps.sales.models import SalesContract, Reservation
+    from apps.sales.models import SalesContract, PropertyReservation
     
     # Get statistics
     today = timezone.now().date()
@@ -31,7 +31,7 @@ def dashboard(request):
         'pending_maintenance': MaintenanceRequest.objects.filter(status='pending').count(),
         'unread_notifications': Notification.objects.filter(user=request.user, is_read=False).count(),
         'total_sales': SalesContract.objects.filter(status='active').count(),
-        'pending_reservations': Reservation.objects.filter(status='pending').count(),
+        'pending_reservations': PropertyReservation.objects.filter(status='pending').count(),
     }
     
     return render(request, 'dashboard.html', context)
