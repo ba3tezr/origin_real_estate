@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-plus-circle text-info me-2"></i>
+                        Create New Account
+                    </h2>
+                    <p class="text-muted mb-0">Add a new account to the chart of accounts</p>
+                </div>
+                <a href="{% url 'financial:account_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Account Code -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Account Code *</label>
+                                <input type="text" name="code" class="form-control" required 
+                                       placeholder="e.g., 1110" 
+                                       pattern="[0-9]{4,}" 
+                                       title="Enter at least 4 digits">
+                                <small class="text-muted">Unique numeric code (4+ digits)</small>
+                            </div>
+
+                            <!-- Account Name -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Account Name *</label>
+                                <input type="text" name="name" class="form-control" required 
+                                       placeholder="e.g., Cash">
+                            </div>
+
+                            <!-- Arabic Name -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Arabic Name</label>
+                                <input type="text" name="name_ar" class="form-control" 
+                                       placeholder="e.g., Cash">
+                            </div>
+
+                            <!-- Account Type -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Account Type *</label>
+                                <select name="account_type" class="form-select" required>
+                                    <option value="">-- Select Type --</option>
+                                    <option value="asset">Asset</option>
+                                    <option value="liability">Liability</option>
+                                    <option value="equity">Equity</option>
+                                    <option value="revenue">Revenue</option>
+                                    <option value="expense">Expense</option>
+                                </select>
+                            </div>
+
+                            <!-- Parent Account -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Parent Account (Optional)</label>
+                                <select name="parent" class="form-select">
+                                    <option value="">-- No Parent (Main Account) --</option>
+                                    {% for account in parent_accounts %}
+                                        <option value="{{ account.id }}">
+                                            {{ account.code }} - {{ account.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">For sub-accounts only</small>
+                            </div>
+
+                            <!-- Opening Balance -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Opening Balance</label>
+                                <input type="number" name="opening_balance" class="form-control" 
+                                       step="0.01" value="0.00" min="0">
+                            </div>
+
+                            <!-- Opening Balance Type -->
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Type</label>
+                                <select name="opening_balance_type" class="form-select">
+                                    <option value="debit">Dr</option>
+                                    <option value="credit">Cr</option>
+                                </select>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control" rows="3" 
+                                          placeholder="Optional description..."></textarea>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="is_active" class="form-check-input" 
+                                           id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        Active Account
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Code Guide -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Account Code Guide:</h6>
+                            <ul class="mb-0">
+                                <li><strong>1000-1999:</strong> Assets</li>
+                                <li><strong>2000-2999:</strong> Liabilities</li>
+                                <li><strong>3000-3999:</strong> Equity</li>
+                                <li><strong>4000-4999:</strong> Revenue</li>
+                                <li><strong>5000-5999:</strong> Expenses</li>
+                            </ul>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'financial:account_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-save me-2"></i>Create Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Common Accounts Template -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Common Accounts Examples</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Assets</h6>
+                            <ul class="small">
+                                <li>1110 - Cash</li>
+                                <li>1120 - Bank Accounts</li>
+                                <li>1130 - Accounts Receivable</li>
+                                <li>1210 - Buildings</li>
+                                <li>1220 - Land</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger">Liabilities</h6>
+                            <ul class="small">
+                                <li>2110 - Accounts Payable</li>
+                                <li>2120 - Short-term Loans</li>
+                                <li>2210 - Long-term Loans</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <h6 class="text-success">Revenue</h6>
+                            <ul class="small">
+                                <li>4100 - Rental Revenue</li>
+                                <li>4200 - Service Revenue</li>
+                                <li>4900 - Other Revenue</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <h6 class="text-warning">Expenses</h6>
+                            <ul class="small">
+                                <li>5100 - Property Maintenance</li>
+                                <li>5200 - Utilities</li>
+                                <li>5300 - Salaries</li>
+                                <li>5400 - Tax</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

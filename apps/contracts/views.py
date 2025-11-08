@@ -85,13 +85,18 @@ def contract_list(request):
         'search_form': search_form,
         'sort_option': sort_option,
         'filter_applied': any(v for k, v in request.GET.items() if k not in ['page', 'sort']),
+        'total_contracts': summary_all.count(),
         'total_count': summary_all.count(),
+        'active_contracts': summary_all.filter(status='active').count(),
         'active_count': summary_all.filter(status='active').count(),
+        'expiring_soon': summary_all.filter(end_date__range=(today, upcoming_threshold)).count(),
         'expiring_soon_count': summary_all.filter(end_date__range=(today, upcoming_threshold)).count(),
+        'expired_contracts': summary_all.filter(status='expired').count(),
         'overdue_contracts_count': summary_all.filter(end_date__lt=today, status__in=['active', 'renewed']).count(),
         'pending_payments_count': ContractPayment.objects.filter(status='pending').count(),
         'pagination_querystring': pagination_querystring,
         'filtered_rent_value': filtered_rent_total,
+        'total_monthly_rent': portfolio_rent_total,
         'total_rent_value': portfolio_rent_total,
     }
     return render(request, 'contracts/list.html', context)

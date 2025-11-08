@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 
 from .models import Client
 from .forms import ClientForm, ClientSearchForm
@@ -53,12 +53,23 @@ def client_list(request):
     paginator = Paginator(queryset, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    # Calculate statistics
+    from apps.contracts.models import Contract
+    total_count = Client.objects.count()
+    active_count = Client.objects.filter(is_active=True).count()
+    active_contracts = Contract.objects.filter(status='active').count()
+    monthly_revenue = Contract.objects.filter(status='active').aggregate(
+        total=Sum('rent_amount')
+    )['total'] or 0
+    
     context = {
         'clients': page_obj,
         'search_form': search_form,
         'sort_option': sort_option,
-        'total_count': Client.objects.count(),
-        'active_count': Client.objects.filter(is_active=True).count(),
+        'total_count': total_count,
+        'active_count': active_count,
+        'active_contracts': active_contracts,
+        'monthly_revenue': monthly_revenue,
     }
     return render(request, 'clients/list.html', context)
 

@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profit & Loss Statement{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-chart-line text-info me-2"></i>
+                Profit & Loss Statement
+            </h2>
+            <p class="text-muted mb-0">Income Statement</p>
+        </div>
+        <div>
+            <button class="btn btn-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Export
+            </button>
+            <button class="btn btn-outline-secondary" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print
+            </button>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select">
+                        <option value="">All Properties</option>
+                        {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-filter me-2"></i>Generate Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 text-center py-4">
+            <h3>ORIGIN APP REAL ESTATE</h3>
+            <h4>Profit & Loss Statement</h4>
+            <p class="mb-0 text-muted">
+                {{ from_date|date:"F d, Y" }} to {{ to_date|date:"F d, Y" }}
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <!-- Revenue Section -->
+                    <thead class="table-success">
+                        <tr>
+                            <th colspan="2">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-arrow-up me-2"></i>REVENUE
+                                </h5>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in revenue_accounts %}
+                        {% with balance=account.get_balance %}
+                        <tr>
+                            <td class="ps-4">{{ account.code }} - {{ account.name }}</td>
+                            <td class="text-end">
+                                {% if balance < 0 %}
+                                    ${{ balance|floatformat:2|slice:"1:" }}
+                                {% else %}
+                                    ${{ balance|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                        <tr class="table-light">
+                            <td class="ps-4"><strong>Total Revenue</strong></td>
+                            <td class="text-end"><strong>${{ total_revenue|floatformat:2 }}</strong></td>
+                        </tr>
+                    </tbody>
+
+                    <!-- Expense Section -->
+                    <thead class="table-warning">
+                        <tr>
+                            <th colspan="2" class="pt-4">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-arrow-down me-2"></i>EXPENSES
+                                </h5>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in expense_accounts %}
+                        {% with balance=account.get_balance %}
+                        <tr>
+                            <td class="ps-4">{{ account.code }} - {{ account.name }}</td>
+                            <td class="text-end">
+                                {% if balance < 0 %}
+                                    ${{ balance|floatformat:2|slice:"1:" }}
+                                {% else %}
+                                    ${{ balance|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                        <tr class="table-light">
+                            <td class="ps-4"><strong>Total Expenses</strong></td>
+                            <td class="text-end"><strong>${{ total_expenses|floatformat:2 }}</strong></td>
+                        </tr>
+                    </tbody>
+
+                    <!-- Net Income -->
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th>
+                                <h5 class="mb-0">NET INCOME</h5>
+                            </th>
+                            <th class="text-end">
+                                <h4 class="mb-0 {% if net_income >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    ${{ net_income|floatformat:2 }}
+                                </h4>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);">
+                        <div class="card-body text-center">
+                            <div class="text-success mb-2"><i class="fas fa-arrow-up fa-2x"></i></div>
+                            <h6 class="text-dark mb-2 fw-bold">Total Revenue</h6>
+                            <h3 class="text-success mb-0 fw-bold">${{ total_revenue|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                        <div class="card-body text-center">
+                            <div class="text-danger mb-2"><i class="fas fa-arrow-down fa-2x"></i></div>
+                            <h6 class="text-dark mb-2 fw-bold">Total Expenses</h6>
+                            <h3 class="text-danger mb-0 fw-bold">${{ total_expenses|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, {% if net_income >= 0 %}#d1ecf1 0%, #bee5eb 100%{% else %}#f8d7da 0%, #f5c6cb 100%{% endif %});">
+                        <div class="card-body text-center">
+                            <div class="{% if net_income >= 0 %}text-info{% else %}text-danger{% endif %} mb-2">
+                                <i class="fas {% if net_income >= 0 %}fa-check-circle{% else %}fa-times-circle{% endif %} fa-2x"></i>
+                            </div>
+                            <h6 class="text-dark mb-2 fw-bold">Net Income</h6>
+                            <h3 class="{% if net_income >= 0 %}text-success{% else %}text-danger{% endif %} mb-0 fw-bold">
+                                ${{ net_income|floatformat:2 }}
+                            </h3>
+                            {% if net_income >= 0 %}
+                                <span class="badge bg-success"><i class="fas fa-arrow-up"></i> Profit</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-arrow-down"></i> Loss</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="mt-4">
+                <canvas id="profitLossChart" height="80"></canvas>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-0 text-center text-muted">
+            <small>Generated on {{ today|date:"F d, Y h:i A" }}</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('profitLossChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Revenue', 'Expenses', 'Net Income'],
+        datasets: [{
+            label: 'Amount ($)',
+            data: [{{ total_revenue }}, {{ total_expenses }}, {{ net_income }}],
+            backgroundColor: [
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(251, 191, 36, 0.8)',
+                '{{ net_income }}' >= 0 ? 'rgba(59, 130, 246, 0.8)' : 'rgba(239, 68, 68, 0.8)'
+            ],
+            borderColor: [
+                'rgb(16, 185, 129)',
+                'rgb(251, 191, 36)',
+                '{{ net_income }}' >= 0 ? 'rgb(59, 130, 246)' : 'rgb(239, 68, 68)'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Profit & Loss Overview'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function exportToExcel() {
+    let csv = 'PROFIT & LOSS STATEMENT\n';
+    csv += 'Period: {{ from_date }} to {{ to_date }}\n\n';
+    csv += 'Account,Amount\n\n';
+    csv += 'REVENUE\n';
+    {% for account in revenue_accounts %}
+    csv += '{{ account.name }},{{ account.get_balance }}\n';
+    {% endfor %}
+    csv += 'Total Revenue,{{ total_revenue }}\n\n';
+    csv += 'EXPENSES\n';
+    {% for account in expense_accounts %}
+    csv += '{{ account.name }},{{ account.get_balance }}\n';
+    {% endfor %}
+    csv += 'Total Expenses,{{ total_expenses }}\n\n';
+    csv += 'NET INCOME,{{ net_income }}\n';
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'profit_loss_{{ from_date }}_{{ to_date }}.csv';
+    a.click();
+}
+</script>
+{% endblock %}

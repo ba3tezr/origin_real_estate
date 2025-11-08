@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trial Balance{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-balance-scale text-info me-2"></i>
+                Trial Balance
+            </h2>
+            <p class="text-muted mb-0">Balance Verification</p>
+        </div>
+        <div>
+            <button class="btn btn-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </button>
+            <button class="btn btn-outline-secondary" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print
+            </button>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">As of Date</label>
+                    <input type="date" name="as_of_date" class="form-control" value="{{ as_of_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Account Type</label>
+                    <select name="account_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="asset">Assets</option>
+                        <option value="liability">Liabilities</option>
+                        <option value="equity">Equity</option>
+                        <option value="revenue">Revenue</option>
+                        <option value="expense">Expenses</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select">
+                        <option value="">All Properties</option>
+                        {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-filter me-2"></i>Generate Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 text-center py-4">
+            <h3>ORIGIN APP REAL ESTATE</h3>
+            <h4>Trial Balance</h4>
+            <p class="mb-0 text-muted">As of {{ as_of_date|date:"F d, Y" }}</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Account Code</th>
+                            <th>Account Name</th>
+                            <th>Account Type</th>
+                            <th class="text-end">Debit</th>
+                            <th class="text-end">Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        {% with balance=account.get_balance %}
+                        {% if balance != 0 %}
+                        <tr>
+                            <td><strong>{{ account.code }}</strong></td>
+                            <td>{{ account.name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if account.account_type == 'asset' %}bg-primary
+                                    {% elif account.account_type == 'liability' %}bg-danger
+                                    {% elif account.account_type == 'equity' %}bg-purple
+                                    {% elif account.account_type == 'revenue' %}bg-success
+                                    {% elif account.account_type == 'expense' %}bg-warning
+                                    {% endif %}">
+                                    {{ account.get_account_type_display }}
+                                </span>
+                            </td>
+                            <td class="text-end text-success">
+                                {% if balance > 0 %}
+                                    ${{ balance|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-end text-danger">
+                                {% if balance < 0 %}
+                                    ${{ balance|floatformat:2|slice:"1:" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th colspan="3" class="text-end">TOTAL:</th>
+                            <th class="text-end text-success">${{ total_debit|floatformat:2 }}</th>
+                            <th class="text-end text-danger">${{ total_credit|floatformat:2 }}</th>
+                        </tr>
+                        <tr>
+                            <th colspan="3" class="text-end">DIFFERENCE:</th>
+                            <th colspan="2" class="text-center 
+                                {% if difference == 0 %}text-success{% else %}text-danger{% endif %}">
+                                ${{ difference|floatformat:2 }}
+                                {% if difference == 0 %}
+                                    <i class="fas fa-check-circle ms-2"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle ms-2"></i>
+                                {% endif %}
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {% if difference == 0 %}
+            <div class="alert alert-success mt-4">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Balanced!</strong> The trial balance is in perfect balance. Total Debit equals Total Credit.
+            </div>
+            {% else %}
+            <div class="alert alert-danger mt-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Unbalanced!</strong> The trial balance has a difference of ${{ difference|floatformat:2 }}. 
+                Please review your journal entries.
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer bg-white border-0 text-center text-muted">
+            <small>Generated on {{ today|date:"F d, Y h:i A" }}</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportToExcel() {
+    // Simple CSV export
+    let csv = 'Account Code,Account Name,Account Type,Debit,Credit\n';
+    const table = document.querySelector('table');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+            const rowData = Array.from(cells).map(cell => 
+                cell.textContent.trim().replace(/,/g, '')
+            ).join(',');
+            csv += rowData + '\n';
+        }
+    });
+    
+    csv += '\nTotal Debit,{{ total_debit|floatformat:2 }}\n';
+    csv += 'Total Credit,{{ total_credit|floatformat:2 }}\n';
+    csv += 'Difference,{{ difference|floatformat:2 }}\n';
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'trial_balance_{{ as_of_date }}.csv';
+    a.click();
+}
+</script>
+{% endblock %}

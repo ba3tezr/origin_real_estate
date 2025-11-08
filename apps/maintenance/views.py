@@ -14,7 +14,7 @@ from .forms import (
     MaintenanceScheduleForm,
     MaintenanceSearchForm,
 )
-from .models import MaintenanceAttachment, MaintenanceRequest, MaintenanceSchedule
+from .models import MaintenanceAttachment, MaintenanceRequest, MaintenanceSchedule, MaintenanceCategory
 
 
 @login_required
@@ -142,6 +142,9 @@ def maintenance_list(request):
         'priority_summary': priority_summary,
         'filtered_estimated_total': filtered_estimated_total,
         'filtered_actual_total': filtered_actual_total,
+        'total_requests': all_requests.count(),
+        'total_cost': filtered_actual_total,
+        'categories': MaintenanceCategory.objects.filter(is_active=True),
     }
     return render(request, 'maintenance/list.html', context)
 

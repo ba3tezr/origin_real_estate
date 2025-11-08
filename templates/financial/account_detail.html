@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ account.name }} - Account Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-invoice-dollar text-info me-2"></i>
+                Account Details
+            </h2>
+            <p class="text-muted mb-0">{{ account.code }} - {{ account.name }}</p>
+        </div>
+        <div>
+            {% if not account.is_system %}
+                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">
+                    <i class="fas fa-edit me-2"></i>Edit Account
+                </button>
+            {% endif %}
+            <a href="{% url 'financial:account_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Account Information -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small">Account Code</label>
+                        <div class="fw-bold">{{ account.code }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small">Account Name</label>
+                        <div class="fw-bold">{{ account.name }}</div>
+                    </div>
+                    {% if account.name_ar %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Arabic Name</label>
+                        <div class="fw-bold">{{ account.name_ar }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Account Type</label>
+                        <div>
+                            <span class="badge bg-primary">{{ account.get_account_type_display }}</span>
+                        </div>
+                    </div>
+                    {% if account.parent %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Parent Account</label>
+                        <div>
+                            <a href="{% url 'financial:account_detail' account.parent.pk %}">
+                                {{ account.parent.code }} - {{ account.parent.name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Status</label>
+                        <div>
+                            {% if account.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                            {% if account.is_system %}
+                                <span class="badge bg-warning">System Account</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if account.description %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Description</label>
+                        <div>{{ account.description }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Current Balance</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% with balance=account.get_balance %}
+                        <h2 class="mb-0 {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ${{ balance|floatformat:2 }}
+                        </h2>
+                        <p class="text-muted mb-0">
+                            {% if balance >= 0 %}Debit Balance{% else %}Credit Balance{% endif %}
+                        </p>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Journal Entry</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Debit</th>
+                                    <th class="text-end">Credit</th>
+                                    <th class="text-end">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in transactions %}
+                                <tr>
+                                    <td>{{ line.journal_entry.entry_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'financial:journal_entry_detail' line.journal_entry.pk %}">
+                                            {{ line.journal_entry.entry_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ line.description|truncatewords:10 }}</td>
+                                    <td class="text-end text-success">
+                                        {% if line.debit_amount %}
+                                            ${{ line.debit_amount|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-danger">
+                                        {% if line.credit_amount %}
+                                            ${{ line.credit_amount|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">
+                                        ${{ line.running_balance|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        No transactions found for this account.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if transactions.has_other_pages %}
+                    <nav aria-label="Pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if transactions.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ transactions.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in transactions.paginator.page_range %}
+                                <li class="page-item {% if transactions.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if transactions.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ transactions.next_page_number }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Child Accounts -->
+            {% if child_accounts %}
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="fas fa-sitemap me-2"></i>Child Accounts</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for child in child_accounts %}
+                        <a href="{% url 'financial:account_detail' child.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ child.code }}</strong> - {{ child.name }}
+                                </div>
+                                <div class="text-end">
+                                    {% with balance=child.get_balance %}
+                                        <span class="{% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ balance|floatformat:2 }}
+                                        </span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+{% if not account.is_system %}
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Account Code *</label>
+                            <input type="text" name="code" class="form-control" value="{{ account.code }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Account Name *</label>
+                            <input type="text" name="name" class="form-control" value="{{ account.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Arabic Name</label>
+                            <input type="text" name="name_ar" class="form-control" value="{{ account.name_ar }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Account Type *</label>
+                            <select name="account_type" class="form-select" required>
+                                <option value="asset" {% if account.account_type == 'asset' %}selected{% endif %}>Asset</option>
+                                <option value="liability" {% if account.account_type == 'liability' %}selected{% endif %}>Liability</option>
+                                <option value="equity" {% if account.account_type == 'equity' %}selected{% endif %}>Equity</option>
+                                <option value="revenue" {% if account.account_type == 'revenue' %}selected{% endif %}>Revenue</option>
+                                <option value="expense" {% if account.account_type == 'expense' %}selected{% endif %}>Expense</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ account.description }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_active" class="form-check-input" {% if account.is_active %}checked{% endif %}>
+                                <label class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

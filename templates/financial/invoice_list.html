@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-invoice text-info me-2"></i>
+                Invoices
+            </h2>
+            <p class="text-muted mb-0">Manage invoices</p>
+        </div>
+        <div>
+            <a href="{% url 'financial:invoice_create' %}" class="btn btn-info">
+                <i class="fas fa-plus me-2"></i>New Invoice
+            </a>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2"><i class="fas fa-file-invoice fa-2x"></i></div>
+                    <h6 class="text-muted">Total</h6>
+                    <h4 class="mb-0">{{ total_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2"><i class="fas fa-check-circle fa-2x"></i></div>
+                    <h6 class="text-muted">Paid</h6>
+                    <h4 class="mb-0">{{ paid_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2"><i class="fas fa-clock fa-2x"></i></div>
+                    <h6 class="text-muted">Issued</h6>
+                    <h4 class="mb-0">{{ issued_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-danger mb-2"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                    <h6 class="text-muted">Draft</h6>
+                    <h4 class="mb-0">{{ draft_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2"><i class="fas fa-dollar-sign fa-2x"></i></div>
+                    <h6 class="text-muted">Outstanding</h6>
+                    <h4 class="mb-0">{{ invoices.paginator.count|default:0 }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="draft">Draft</option>
+                        <option value="issued">Issued</option>
+                        <option value="paid">Paid</option>
+                        <option value="partial">Partially Paid</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Type</label>
+                    <select name="invoice_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="sales">Sales</option>
+                        <option value="purchase">Purchase</option>
+                        <option value="rent">Rent</option>
+                        <option value="service">Service</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="from_date" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="to_date" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Invoice number...">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Date</th>
+                            <th>Due Date</th>
+                            <th>Type</th>
+                            <th>Client/Vendor</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Paid</th>
+                            <th class="text-end">Balance</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'financial:invoice_detail' invoice.pk %}" class="fw-bold">
+                                    {{ invoice.invoice_number }}
+                                </a>
+                            </td>
+                            <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
+                            <td>
+                                {{ invoice.due_date|date:"Y-m-d" }}
+                                {% if invoice.is_overdue %}
+                                    <br><small class="text-danger">
+                                        <i class="fas fa-exclamation-circle"></i> Overdue
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if invoice.invoice_type == 'sales' %}bg-success
+                                    {% elif invoice.invoice_type == 'purchase' %}bg-danger
+                                    {% elif invoice.invoice_type == 'rent' %}bg-info
+                                    {% elif invoice.invoice_type == 'service' %}bg-primary
+                                    {% endif %}">
+                                    {{ invoice.get_invoice_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if invoice.property %}
+                                    {{ invoice.property.title }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold">${{ invoice.total_amount|floatformat:2 }}</td>
+                            <td class="text-end text-success">${{ invoice.paid_amount|floatformat:2 }}</td>
+                            <td class="text-end {% if invoice.get_balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                                ${{ invoice.get_balance|floatformat:2 }}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if invoice.status == 'draft' %}bg-secondary
+                                    {% elif invoice.status == 'issued' %}bg-primary
+                                    {% elif invoice.status == 'paid' %}bg-success
+                                    {% elif invoice.status == 'partial' %}bg-warning
+                                    {% elif invoice.status == 'overdue' %}bg-danger
+                                    {% elif invoice.status == 'cancelled' %}bg-dark
+                                    {% endif %}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'financial:invoice_detail' invoice.pk %}" 
+                                   class="btn btn-sm btn-outline-info" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" title="Print">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p class="mb-0">No invoices found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if invoices.has_other_pages %}
+            <nav aria-label="Pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if invoices.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invoices.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    {% for num in invoices.paginator.page_range %}
+                        <li class="page-item {% if invoices.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if invoices.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invoices.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

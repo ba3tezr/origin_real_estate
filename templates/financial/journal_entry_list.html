@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Journal Entries{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-book text-info me-2"></i>
+                Journal Entries
+            </h2>
+            <p class="text-muted mb-0">Double Entry Bookkeeping</p>
+        </div>
+        <div>
+            <a href="{% url 'financial:journal_entry_create' %}" class="btn btn-info">
+                <i class="fas fa-plus me-2"></i>New Journal Entry
+            </a>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 text-info rounded p-3">
+                                <i class="fas fa-book fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Entries</h6>
+                            <h3 class="mb-0">{{ total_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 text-success rounded p-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Posted</h6>
+                            <h3 class="mb-0">{{ posted_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 text-warning rounded p-3">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Draft</h6>
+                            <h3 class="mb-0">{{ total_count|add:"-"|add:posted_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-danger bg-opacity-10 text-danger rounded p-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">This Month</h6>
+                            <h3 class="mb-0">{{ total_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Entry Type</label>
+                    <select name="entry_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="manual">Manual</option>
+                        <option value="automated">Automated</option>
+                        <option value="adjustment">Adjustment</option>
+                        <option value="opening">Opening</option>
+                        <option value="closing">Closing</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="posted">Posted</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="from_date" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="to_date" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Entry number...">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Journal Entries Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Entry #</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th class="text-end">Total Debit</th>
+                            <th class="text-end">Total Credit</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr class="{% if not entry.is_balanced %}table-danger{% endif %}">
+                            <td>
+                                <a href="{% url 'financial:journal_entry_detail' entry.pk %}" class="fw-bold text-decoration-none">
+                                    {{ entry.entry_number }}
+                                </a>
+                            </td>
+                            <td>{{ entry.entry_date|date:"Y-m-d" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if entry.entry_type == 'manual' %}bg-primary
+                                    {% elif entry.entry_type == 'automated' %}bg-success
+                                    {% elif entry.entry_type == 'adjustment' %}bg-warning
+                                    {% elif entry.entry_type == 'opening' %}bg-info
+                                    {% elif entry.entry_type == 'closing' %}bg-danger
+                                    {% endif %}">
+                                    {{ entry.get_entry_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ entry.description|truncatewords:10 }}
+                                {% if entry.property %}
+                                    <br><small class="text-muted">
+                                        <i class="fas fa-building me-1"></i>{{ entry.property.title }}
+                                    </small>
+                                {% endif %}
+                                {% if entry.contract %}
+                                    <br><small class="text-muted">
+                                        <i class="fas fa-file-contract me-1"></i>{{ entry.contract.contract_number }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td class="text-end text-success fw-bold">
+                                ${{ entry.get_total_debit|floatformat:2 }}
+                            </td>
+                            <td class="text-end text-danger fw-bold">
+                                ${{ entry.get_total_credit|floatformat:2 }}
+                            </td>
+                            <td>
+                                {% if entry.is_posted %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Posted
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>Draft
+                                    </span>
+                                {% endif %}
+                                {% if not entry.is_balanced %}
+                                    <br><span class="badge bg-danger mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Unbalanced
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'financial:journal_entry_detail' entry.pk %}" 
+                                   class="btn btn-sm btn-outline-info" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not entry.is_posted %}
+                                    <form method="POST" action="{% url 'financial:journal_entry_post' entry.pk %}" 
+                                          class="d-inline" onsubmit="return confirm('Post this entry? This action cannot be undone.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                title="Post Entry"
+                                                {% if not entry.is_balanced %}disabled{% endif %}>
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p class="mb-0">No journal entries found.</p>
+                                <a href="{% url 'financial:journal_entry_create' %}" class="btn btn-info mt-3">
+                                    <i class="fas fa-plus me-2"></i>Create First Entry
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if entries.has_other_pages %}
+            <nav aria-label="Pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if entries.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ entries.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in entries.paginator.page_range %}
+                        {% if entries.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > entries.number|add:'-3' and num < entries.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if entries.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ entries.next_page_number }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds for real-time updates
+    // Uncomment if needed:
+    // setTimeout(function() {
+    //     location.reload();
+    // }, 30000);
+});
+</script>
+{% endblock %}

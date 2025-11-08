@@ -104,15 +104,29 @@ def property_list(request):
 
     pagination_query = query_params.copy()
 
+    # Statistics for summary cards
+    total_properties = Property.objects.count()
+    available_count = Property.objects.filter(status='available').count()
+    rented_count = Property.objects.filter(status='rented').count()
+    maintenance_count = Property.objects.filter(status='maintenance').count()
+    total_value = Property.objects.aggregate(total=Sum('market_value'))['total'] or 0
+    
+    # Property types for filter dropdown
+    property_types = PropertyType.objects.filter(is_active=True)
+
     context = {
         'properties': page_obj,
         'search_form': search_form,
         'display_mode': display_mode,
         'sort_option': sort_option,
-        'total_count': Property.objects.count(),
+        'total_properties': total_properties,
+        'total_count': total_properties,
         'active_count': Property.objects.filter(is_active=True).count(),
-        'available_count': Property.objects.filter(status='available').count(),
-        'rented_count': Property.objects.filter(status='rented').count(),
+        'available_count': available_count,
+        'rented_count': rented_count,
+        'maintenance_count': maintenance_count,
+        'total_value': total_value,
+        'property_types': property_types,
         'filter_applied': any(v for k, v in request.GET.items() if k not in ['page']),
         'table_querystring': query_params_table.urlencode(),
         'grid_querystring': query_params_grid.urlencode(),

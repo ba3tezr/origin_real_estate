@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Payment{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-money-bill-wave text-info me-2"></i>
+                        Create Payment
+                    </h2>
+                    <p class="text-muted mb-0">Create new payment or receipt</p>
+                </div>
+                <a href="{% url 'financial:payment_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Payment Type -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Type *</label>
+                                <select name="payment_type" class="form-select" required onchange="updateFormLabels(this)">
+                                    <option value="">-- Select Type --</option>
+                                    <option value="receipt">Receipt</option>
+                                    <option value="payment">Payment</option>
+                                </select>
+                            </div>
+
+                            <!-- Payment Date -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Date *</label>
+                                <input type="date" name="payment_date" class="form-control" 
+                                       value="{{ today }}" required>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Method *</label>
+                                <select name="payment_method" class="form-select" required>
+                                    <option value="">-- Select Method --</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="check">Check</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="online">Online Payment</option>
+                                </select>
+                            </div>
+
+                            <!-- Amount -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="amount" class="form-control" 
+                                           step="0.01" min="0.01" required placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <!-- Paid To/By -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" id="paidToByLabel">Paid To/By</label>
+                                <input type="text" name="paid_to" class="form-control" 
+                                       placeholder="Name of person/company">
+                            </div>
+
+                            <!-- Reference Number -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Reference Number</label>
+                                <input type="text" name="reference_number" class="form-control" 
+                                       placeholder="e.g., Check number">
+                            </div>
+
+                            <!-- Invoice (Optional) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Invoice</label>
+                                <select name="invoice" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for invoice in invoices %}
+                                        <option value="{{ invoice.id }}">
+                                            {{ invoice.invoice_number }} - ${{ invoice.get_balance|floatformat:2 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Select if this payment is for a specific invoice</small>
+                            </div>
+
+                            <!-- Property (Optional) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Property</label>
+                                <select name="property" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for property in properties %}
+                                        <option value="{{ property.id }}">{{ property.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Contract (Optional) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Contract</label>
+                                <select name="contract" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for contract in contracts %}
+                                        <option value="{{ contract.id }}">{{ contract.contract_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes" class="form-control" rows="3" 
+                                          placeholder="Additional notes or description..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Payment Information:</h6>
+                            <ul class="mb-0 small">
+                                <li><strong>Receipt:</strong> Money received from customers/tenants</li>
+                                <li><strong>Payment:</strong> Money paid to vendors/suppliers</li>
+                                <li>Payment number will be auto-generated (RCV-2025-XXXX or PAY-2025-XXXX)</li>
+                                <li>A journal entry will be created automatically</li>
+                            </ul>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'financial:payment_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-save me-2"></i>Create Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateFormLabels(select) {
+    const label = document.getElementById('paidToByLabel');
+    if (select.value === 'receipt') {
+        label.textContent = 'Received From (Received From)';
+    } else if (select.value === 'payment') {
+        label.textContent = 'Paid To (Paid To)';
+    } else {
+        label.textContent = 'Paid To/By';
+    }
+}
+</script>
+{% endblock %}

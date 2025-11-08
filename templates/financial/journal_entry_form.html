@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Journal Entry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .entry-line {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .balance-indicator {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .balanced {
+        background: #10B981;
+        color: white;
+    }
+    .unbalanced {
+        background: #EF4444;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-plus-circle text-info me-2"></i>
+                        Create Journal Entry
+                    </h2>
+                    <p class="text-muted mb-0">Create new journal entry</p>
+                </div>
+                <a href="{% url 'financial:journal_entry_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+
+            <form method="POST" id="journalEntryForm">
+                {% csrf_token %}
+                
+                <!-- Entry Header -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Entry Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Entry Date *</label>
+                                <input type="date" name="entry_date" class="form-control" 
+                                       value="{{ today }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Entry Type *</label>
+                                <select name="entry_type" class="form-select" required>
+                                    <option value="manual">Manual Entry</option>
+                                    <option value="adjustment">Adjustment Entry</option>
+                                    <option value="opening">Opening Entry</option>
+                                    <option value="closing">Closing Entry</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Financial Period</label>
+                                <select name="period" class="form-select">
+                                    <option value="">-- Current Period --</option>
+                                    {% for period in periods %}
+                                        <option value="{{ period.id }}">{{ period.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Property</label>
+                                <select name="property" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for property in properties %}
+                                        <option value="{{ property.id }}">{{ property.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Contract</label>
+                                <select name="contract" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for contract in contracts %}
+                                        <option value="{{ contract.id }}">{{ contract.contract_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description *</label>
+                                <textarea name="description" class="form-control" rows="2" 
+                                          required placeholder="Brief description of this journal entry..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entry Lines -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Entry Lines</h5>
+                        <button type="button" class="btn btn-sm btn-success" onclick="addLine()">
+                            <i class="fas fa-plus me-2"></i>Add Line
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="entry-lines">
+                            <!-- Lines will be added here dynamically -->
+                            <div class="entry-line" data-line="1">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Line 1</h6>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeLine(1)" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label">Account *</label>
+                                        <select name="lines[0][account]" class="form-select" required onchange="calculateBalance()">
+                                            <option value="">-- Select Account --</option>
+                                            {% for account in accounts %}
+                                                <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label">Debit Amount</label>
+                                        <input type="number" name="lines[0][debit]" class="form-control debit-input" 
+                                               step="0.01" min="0" value="0" onchange="handleDebitCredit(this, 0); calculateBalance();">
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label">Credit Amount</label>
+                                        <input type="number" name="lines[0][credit]" class="form-control credit-input" 
+                                               step="0.01" min="0" value="0" onchange="handleDebitCredit(this, 0); calculateBalance();">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label">Type</label>
+                                        <input type="text" class="form-control" readonly value="-">
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <label class="form-label">Description</label>
+                                        <input type="text" name="lines[0][description]" class="form-control" 
+                                               placeholder="Line description...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="row mt-4 pt-4 border-top">
+                            <div class="col-md-4 offset-md-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>Total Debit:</strong>
+                                    <strong class="text-success" id="totalDebit">$0.00</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>Total Credit:</strong>
+                                    <strong class="text-danger" id="totalCredit">$0.00</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4 offset-md-8">
+                                <div class="d-flex justify-content-between pt-2 border-top">
+                                    <strong>Difference:</strong>
+                                    <strong id="difference">$0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong> Total Debit must equal Total Credit for the entry to be balanced.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'financial:journal_entry_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" name="action" value="save" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Save as Draft
+                    </button>
+                    <button type="submit" name="action" value="post" class="btn btn-success" id="postButton" disabled>
+                        <i class="fas fa-check me-2"></i>Save & Post
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Balance Indicator -->
+<div class="balance-indicator unbalanced" id="balanceIndicator">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Unbalanced</strong>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let lineCount = 1;
+
+function addLine() {
+    lineCount++;
+    const container = document.getElementById('entry-lines');
+    const newLine = `
+        <div class="entry-line" data-line="${lineCount}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Line ${lineCount}</h6>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeLine(${lineCount})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Account *</label>
+                    <select name="lines[${lineCount-1}][account]" class="form-select" required onchange="calculateBalance()">
+                        <option value="">-- Select Account --</option>
+                        {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label">Debit Amount</label>
+                    <input type="number" name="lines[${lineCount-1}][debit]" class="form-control debit-input" 
+                           step="0.01" min="0" value="0" onchange="handleDebitCredit(this, ${lineCount-1}); calculateBalance();">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label">Credit Amount</label>
+                    <input type="number" name="lines[${lineCount-1}][credit]" class="form-control credit-input" 
+                           step="0.01" min="0" value="0" onchange="handleDebitCredit(this, ${lineCount-1}); calculateBalance();">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label">Type</label>
+                    <input type="text" class="form-control" readonly value="-">
+                </div>
+                <div class="col-12 mb-2">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="lines[${lineCount-1}][description]" class="form-control" 
+                           placeholder="Line description...">
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', newLine);
+    calculateBalance();
+}
+
+function removeLine(lineNumber) {
+    const line = document.querySelector(`[data-line="${lineNumber}"]`);
+    if (line) {
+        line.remove();
+        calculateBalance();
+    }
+}
+
+function handleDebitCredit(input, index) {
+    const row = input.closest('.row');
+    if (input.classList.contains('debit-input') && parseFloat(input.value) > 0) {
+        row.querySelector('.credit-input').value = '0';
+    } else if (input.classList.contains('credit-input') && parseFloat(input.value) > 0) {
+        row.querySelector('.debit-input').value = '0';
+    }
+}
+
+function calculateBalance() {
+    let totalDebit = 0;
+    let totalCredit = 0;
+    
+    document.querySelectorAll('.debit-input').forEach(input => {
+        totalDebit += parseFloat(input.value) || 0;
+    });
+    
+    document.querySelectorAll('.credit-input').forEach(input => {
+        totalCredit += parseFloat(input.value) || 0;
+    });
+    
+    document.getElementById('totalDebit').textContent = '$' + totalDebit.toFixed(2);
+    document.getElementById('totalCredit').textContent = '$' + totalCredit.toFixed(2);
+    
+    const difference = Math.abs(totalDebit - totalCredit);
+    document.getElementById('difference').textContent = '$' + difference.toFixed(2);
+    
+    const indicator = document.getElementById('balanceIndicator');
+    const postButton = document.getElementById('postButton');
+    
+    if (difference === 0 && totalDebit > 0) {
+        indicator.className = 'balance-indicator balanced';
+        indicator.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Balanced</strong>';
+        postButton.disabled = false;
+    } else {
+        indicator.className = 'balance-indicator unbalanced';
+        indicator.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Unbalanced</strong>';
+        postButton.disabled = true;
+    }
+}
+
+// Initial calculation
+document.addEventListener('DOMContentLoaded', function() {
+    calculateBalance();
+});
+</script>
+{% endblock %}

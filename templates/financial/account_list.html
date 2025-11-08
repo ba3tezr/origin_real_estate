@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chart of Accounts{% endblock %}
+
+{% block extra_css %}
+<style>
+    .account-tree {
+        list-style: none;
+        padding-left: 0;
+    }
+    
+    .account-tree li {
+        margin: 8px 0;
+    }
+    
+    .account-item {
+        padding: 12px 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+        transition: all 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .account-item:hover {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .account-parent {
+        font-weight: 600;
+        border-left: 4px solid #3B82F6;
+    }
+    
+    .account-child {
+        margin-left: 30px;
+        border-left: 2px solid #e5e7eb;
+    }
+    
+    .account-type-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .account-type-asset {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+    
+    .account-type-liability {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+    
+    .account-type-equity {
+        background: #E9D5FF;
+        color: #6B21A8;
+    }
+    
+    .account-type-revenue {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    
+    .account-type-expense {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+    
+    .balance-debit {
+        color: #059669;
+        font-weight: 600;
+    }
+    
+    .balance-credit {
+        color: #DC2626;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-chart-line text-info me-2"></i>
+                Chart of Accounts
+            </h2>
+            <p class="text-muted mb-0">Manage your financial accounts</p>
+        </div>
+        <div>
+            <a href="{% url 'financial:account_create' %}" class="btn btn-info">
+                <i class="fas fa-plus me-2"></i>Add New Account
+            </a>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-wallet fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Assets</h6>
+                    <h4 class="mb-0">{{ asset_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-credit-card fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Liabilities</h6>
+                    <h4 class="mb-0">{{ liability_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-purple mb-2">
+                        <i class="fas fa-balance-scale fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Equity</h6>
+                    <h4 class="mb-0">{{ equity_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-arrow-up fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Revenue</h6>
+                    <h4 class="mb-0">{{ revenue_count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-arrow-down fa-2x"></i>
+                    </div>
+                    <h6 class="text-muted">Expenses</h6>
+                    <h4 class="mb-0">{{ expense_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <button class="btn btn-link text-decoration-none w-100 text-start p-0" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+                <i class="fas fa-filter me-2"></i>Filters & Search
+                <i class="fas fa-chevron-down float-end"></i>
+            </button>
+        </div>
+        <div class="collapse" id="filtersCollapse">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Account Type</label>
+                        <select name="account_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="asset" {% if request.GET.account_type == 'asset' %}selected{% endif %}>Asset</option>
+                            <option value="liability" {% if request.GET.account_type == 'liability' %}selected{% endif %}>Liability</option>
+                            <option value="equity" {% if request.GET.account_type == 'equity' %}selected{% endif %}>Equity</option>
+                            <option value="revenue" {% if request.GET.account_type == 'revenue' %}selected{% endif %}>Revenue</option>
+                            <option value="expense" {% if request.GET.account_type == 'expense' %}selected{% endif %}>Expense</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="search" class="form-control" placeholder="Search by code or name..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select name="is_active" class="form-select">
+                            <option value="">All</option>
+                            <option value="1" {% if request.GET.is_active == '1' %}selected{% endif %}>Active</option>
+                            <option value="0" {% if request.GET.is_active == '0' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <a href="{% url 'financial:account_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-redo me-2"></i>Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounts by Type -->
+    {% for account_type, accounts in accounts_by_type.items %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0">
+                {% if account_type == 'asset' %}
+                    <i class="fas fa-wallet text-primary me-2"></i>Assets
+                {% elif account_type == 'liability' %}
+                    <i class="fas fa-credit-card text-danger me-2"></i>Liabilities
+                {% elif account_type == 'equity' %}
+                    <i class="fas fa-balance-scale text-purple me-2"></i>Equity
+                {% elif account_type == 'revenue' %}
+                    <i class="fas fa-arrow-up text-success me-2"></i>Revenue
+                {% elif account_type == 'expense' %}
+                    <i class="fas fa-arrow-down text-warning me-2"></i>Expenses
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if accounts %}
+                <ul class="account-tree">
+                    {% for account in accounts %}
+                        <li>
+                            <div class="account-item {% if not account.parent %}account-parent{% else %}account-child{% endif %}">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <div class="me-3">
+                                        <strong>{{ account.code }}</strong>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div>{{ account.name }}</div>
+                                    </div>
+                                    <div class="text-end me-3">
+                                        <span class="account-type-badge account-type-{{ account.account_type }}">
+                                            {{ account.get_account_type_display }}
+                                        </span>
+                                    </div>
+                                    <div class="text-end me-3" style="min-width: 120px;">
+                                        {% with balance=account.get_balance %}
+                                            {% if balance >= 0 %}
+                                                <span class="balance-debit">${{ balance|floatformat:2 }}</span>
+                                                <small class="text-muted d-block">Dr</small>
+                                            {% else %}
+                                                <span class="balance-credit">${{ balance|floatformat:2 }}</span>
+                                                <small class="text-muted d-block">Cr</small>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="{% url 'financial:account_detail' account.pk %}" class="btn btn-sm btn-outline-info me-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if not account.is_system %}
+                                        <a href="{% url 'financial:account_detail' account.pk %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if account.children.all %}
+                                <ul class="account-tree mt-2">
+                                    {% for child in account.children.all %}
+                                        <li>
+                                            <div class="account-item account-child">
+                                                <div class="d-flex align-items-center flex-grow-1">
+                                                    <div class="me-3">
+                                                        <strong>{{ child.code }}</strong>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div>{{ child.name }}</div>
+                                                    </div>
+                                                    <div class="text-end me-3">
+                                                        <span class="account-type-badge account-type-{{ child.account_type }}">
+                                                            {{ child.get_account_type_display }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-end me-3" style="min-width: 120px;">
+                                                        {% with balance=child.get_balance %}
+                                                            {% if balance >= 0 %}
+                                                                <span class="balance-debit">${{ balance|floatformat:2 }}</span>
+                                                                <small class="text-muted d-block">Dr</small>
+                                                            {% else %}
+                                                                <span class="balance-credit">${{ balance|floatformat:2 }}</span>
+                                                                <small class="text-muted d-block">Cr</small>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <a href="{% url 'financial:account_detail' child.pk %}" class="btn btn-sm btn-outline-info me-1">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if not child.is_system %}
+                                                        <a href="{% url 'financial:account_detail' child.pk %}" class="btn btn-sm btn-outline-warning">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted text-center py-4">No accounts found in this category.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<style>
+.card-header .btn-link {
+    color: #495057;
+    font-weight: 500;
+}
+.card-header .btn-link:hover {
+    color: #0dcaf0;
+}
+.card-header .btn-link[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+    transition: transform 0.3s;
+}
+</style>
+{% endblock %}

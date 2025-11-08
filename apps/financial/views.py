@@ -87,12 +87,53 @@ def financial_dashboard(request):
 # Chart of Accounts Views
 @login_required
 def account_list(request):
-    """List all accounts in tree structure"""
-    accounts = Account.objects.filter(parent__isnull=True).prefetch_related('children')
+    """List all accounts in tree structure with filters"""
+    # Start with all accounts
+    queryset = Account.objects.all()
+    
+    # Apply filters
+    account_type_filter = request.GET.get('account_type')
+    search = request.GET.get('search')
+    is_active = request.GET.get('is_active')
+    
+    if account_type_filter:
+        queryset = queryset.filter(account_type=account_type_filter)
+    
+    if search:
+        queryset = queryset.filter(
+            Q(code__icontains=search) | Q(name__icontains=search)
+        )
+    
+    if is_active == '1':
+        queryset = queryset.filter(is_active=True)
+    elif is_active == '0':
+        queryset = queryset.filter(is_active=False)
+    
+    # Get all accounts grouped by type
+    accounts_by_type = {}
+    for acc_type in ['asset', 'liability', 'equity', 'revenue', 'expense']:
+        accounts = queryset.filter(
+            account_type=acc_type,
+            parent=None
+        ).prefetch_related('children').order_by('code')
+        if accounts.exists():
+            accounts_by_type[acc_type] = accounts
+    
+    # Count by type (from filtered queryset)
+    asset_count = queryset.filter(account_type='asset').count()
+    liability_count = queryset.filter(account_type='liability').count()
+    equity_count = queryset.filter(account_type='equity').count()
+    revenue_count = queryset.filter(account_type='revenue').count()
+    expense_count = queryset.filter(account_type='expense').count()
     
     context = {
-        'accounts': accounts,
-        'total_accounts': Account.objects.count(),
+        'accounts_by_type': accounts_by_type,
+        'total_accounts': queryset.count(),
+        'asset_count': asset_count,
+        'liability_count': liability_count,
+        'equity_count': equity_count,
+        'revenue_count': revenue_count,
+        'expense_count': expense_count,
     }
     return render(request, 'financial/account_list.html', context)
 

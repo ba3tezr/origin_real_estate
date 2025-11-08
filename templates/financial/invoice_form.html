@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Invoice{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-file-invoice text-info me-2"></i>
+                        Create Invoice
+                    </h2>
+                    <p class="text-muted mb-0">Create new invoice</p>
+                </div>
+                <a href="{% url 'financial:invoice_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+
+            <form method="POST" id="invoiceForm">
+                {% csrf_token %}
+                
+                <!-- Invoice Header -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Invoice Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Invoice Date *</label>
+                                <input type="date" name="invoice_date" class="form-control" 
+                                       value="{{ today }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Due Date *</label>
+                                <input type="date" name="due_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Invoice Type *</label>
+                                <select name="invoice_type" class="form-select" required>
+                                    <option value="">-- Select Type --</option>
+                                    <option value="sales">Sales Invoice</option>
+                                    <option value="purchase">Purchase Invoice</option>
+                                    <option value="rent">Rent Invoice</option>
+                                    <option value="service">Service Invoice</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Client/Vendor</label>
+                                <input type="text" name="vendor" class="form-control" 
+                                       placeholder="Client or vendor name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Property</label>
+                                <select name="property" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for property in properties %}
+                                        <option value="{{ property.id }}">{{ property.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Contract</label>
+                                <select name="contract" class="form-select">
+                                    <option value="">-- None --</option>
+                                    {% for contract in contracts %}
+                                        <option value="{{ contract.id }}">{{ contract.contract_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Invoice Status</label>
+                                <select name="invoice_status" class="form-select">
+                                    <option value="draft">Draft</option>
+                                    <option value="issued" selected>Issued</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control" rows="2" 
+                                          placeholder="Invoice description..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Invoice Items</h5>
+                        <button type="button" class="btn btn-sm btn-success" onclick="addItem()">
+                            <i class="fas fa-plus me-2"></i>Add Item
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="invoice-items">
+                            <!-- Items will be added here -->
+                            <div class="invoice-item" data-item="1">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Item 1</h6>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(1)" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label">Description *</label>
+                                        <input type="text" name="items[0][description]" class="form-control" 
+                                               required placeholder="Item description">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label">Quantity *</label>
+                                        <input type="number" name="items[0][quantity]" class="form-control item-quantity" 
+                                               min="1" value="1" required onchange="calculateItemTotal(0)">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label">Unit Price *</label>
+                                        <input type="number" name="items[0][unit_price]" class="form-control item-price" 
+                                               step="0.01" min="0" required onchange="calculateItemTotal(0)">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label">Tax %</label>
+                                        <input type="number" name="items[0][tax_rate]" class="form-control item-tax" 
+                                               step="0.01" min="0" max="100" value="0" onchange="calculateItemTotal(0)">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label">Total</label>
+                                        <input type="text" class="form-control item-total" readonly value="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="row mt-4 pt-4 border-top">
+                            <div class="col-md-6 offset-md-6">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>Subtotal:</strong>
+                                    <strong id="subtotal">$0.00</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <strong>Tax Amount:</strong>
+                                        <input type="number" name="tax_amount" class="form-control form-control-sm d-inline-block ms-2" 
+                                               style="width: 100px;" value="0" readonly>
+                                    </div>
+                                    <strong id="taxAmount">$0.00</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <strong>Discount:</strong>
+                                        <input type="number" name="discount_amount" class="form-control form-control-sm d-inline-block ms-2" 
+                                               style="width: 100px;" step="0.01" value="0" onchange="calculateTotals()">
+                                    </div>
+                                    <strong id="discountAmount">$0.00</strong>
+                                </div>
+                                <div class="d-flex justify-content-between pt-2 border-top">
+                                    <h5>Total Amount:</h5>
+                                    <h5 class="text-info" id="totalAmount">$0.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'financial:invoice_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" name="action" value="draft" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Save as Draft
+                    </button>
+                    <button type="submit" name="action" value="issue" class="btn btn-success">
+                        <i class="fas fa-paper-plane me-2"></i>Issue Invoice
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let itemCount = 1;
+
+function addItem() {
+    itemCount++;
+    const container = document.getElementById('invoice-items');
+    const newItem = `
+        <div class="invoice-item" data-item="${itemCount}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Item ${itemCount}</h6>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${itemCount})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Description *</label>
+                    <input type="text" name="items[${itemCount-1}][description]" class="form-control" 
+                           required placeholder="Item description">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label">Quantity *</label>
+                    <input type="number" name="items[${itemCount-1}][quantity]" class="form-control item-quantity" 
+                           min="1" value="1" required onchange="calculateItemTotal(${itemCount-1})">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label">Unit Price *</label>
+                    <input type="number" name="items[${itemCount-1}][unit_price]" class="form-control item-price" 
+                           step="0.01" min="0" required onchange="calculateItemTotal(${itemCount-1})">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label">Tax %</label>
+                    <input type="number" name="items[${itemCount-1}][tax_rate]" class="form-control item-tax" 
+                           step="0.01" min="0" max="100" value="0" onchange="calculateItemTotal(${itemCount-1})">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label">Total</label>
+                    <input type="text" class="form-control item-total" readonly value="0.00">
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', newItem);
+}
+
+function removeItem(itemNumber) {
+    const item = document.querySelector(`[data-item="${itemNumber}"]`);
+    if (item) {
+        item.remove();
+        calculateTotals();
+    }
+}
+
+function calculateItemTotal(index) {
+    const items = document.querySelectorAll('.invoice-item');
+    const item = items[index];
+    
+    const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+    const price = parseFloat(item.querySelector('.item-price').value) || 0;
+    const taxRate = parseFloat(item.querySelector('.item-tax').value) || 0;
+    
+    const subtotal = quantity * price;
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
+    
+    item.querySelector('.item-total').value = total.toFixed(2);
+    
+    calculateTotals();
+}
+
+function calculateTotals() {
+    let subtotal = 0;
+    let totalTax = 0;
+    
+    document.querySelectorAll('.invoice-item').forEach((item, index) => {
+        const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+        const price = parseFloat(item.querySelector('.item-price').value) || 0;
+        const taxRate = parseFloat(item.querySelector('.item-tax').value) || 0;
+        
+        const itemSubtotal = quantity * price;
+        const itemTax = itemSubtotal * (taxRate / 100);
+        
+        subtotal += itemSubtotal;
+        totalTax += itemTax;
+    });
+    
+    const discount = parseFloat(document.querySelector('[name="discount_amount"]').value) || 0;
+    const total = subtotal + totalTax - discount;
+    
+    document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('taxAmount').textContent = '$' + totalTax.toFixed(2);
+    document.querySelector('[name="tax_amount"]').value = totalTax.toFixed(2);
+    document.getElementById('discountAmount').textContent = '$' + discount.toFixed(2);
+    document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+}
+
+// Initial calculation
+document.addEventListener('DOMContentLoaded', function() {
+    calculateTotals();
+});
+</script>
+{% endblock %}

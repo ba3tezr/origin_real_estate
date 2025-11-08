@@ -53,12 +53,24 @@ def owner_list(request):
     paginator = Paginator(queryset, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    # Calculate statistics
+    from apps.properties.models import Property
+    total_owners = Owner.objects.count()
+    active_owners = Owner.objects.filter(is_active=True).count()
+    total_properties = Property.objects.count()
+    portfolio_value = Property.objects.aggregate(total=Count('id'))['total'] or 0
+    portfolio_value_sum = Property.objects.aggregate(total=Count('market_value'))['total'] or 0
+    
     context = {
         'owners': page_obj,
         'search_form': search_form,
         'sort_option': sort_option,
-        'total_count': Owner.objects.count(),
-        'active_count': Owner.objects.filter(is_active=True).count(),
+        'total_owners': total_owners,
+        'total_count': total_owners,
+        'active_owners': active_owners,
+        'active_count': active_owners,
+        'total_properties': total_properties,
+        'portfolio_value': portfolio_value,
     }
     return render(request, 'owners/list.html', context)
 

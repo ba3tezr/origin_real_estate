@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Balance Sheet{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-alt text-info me-2"></i>
+                Balance Sheet
+            </h2>
+            <p class="text-muted mb-0">Statement of Financial Position</p>
+        </div>
+        <div>
+            <button class="btn btn-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Export
+            </button>
+            <button class="btn btn-outline-secondary" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print
+            </button>
+            <a href="{% url 'financial:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">As of Date</label>
+                    <input type="date" name="as_of_date" class="form-control" value="{{ as_of_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select">
+                        <option value="">All Properties</option>
+                        {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-filter me-2"></i>Generate Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 text-center py-4">
+            <h3>ORIGIN APP REAL ESTATE</h3>
+            <h4>Balance Sheet</h4>
+            <p class="mb-0 text-muted">As of {{ as_of_date|date:"F d, Y" }}</p>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Left Column: Assets -->
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th colspan="2">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-wallet me-2"></i>ASSETS
+                                        </h5>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in asset_accounts %}
+                                {% with balance=account.get_balance %}
+                                <tr>
+                                    <td class="ps-4">{{ account.code }} - {{ account.name }}</td>
+                                    <td class="text-end">${{ balance|floatformat:2 }}</td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                                <tr class="table-light">
+                                    <td class="ps-4"><strong>Total Assets</strong></td>
+                                    <td class="text-end"><strong>${{ total_assets|floatformat:2 }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Column: Liabilities & Equity -->
+                <div class="col-md-6">
+                    <!-- Liabilities -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th colspan="2">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-credit-card me-2"></i>LIABILITIES
+                                        </h5>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in liability_accounts %}
+                                {% with balance=account.get_balance %}
+                                <tr>
+                                    <td class="ps-4">{{ account.code }} - {{ account.name }}</td>
+                                    <td class="text-end">
+                                        {% if balance < 0 %}
+                                            ${{ balance|floatformat:2|slice:"1:" }}
+                                        {% else %}
+                                            ${{ balance|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                                <tr class="table-light">
+                                    <td class="ps-4"><strong>Total Liabilities</strong></td>
+                                    <td class="text-end"><strong>${{ total_liabilities|floatformat:2 }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Equity -->
+                    <div class="table-responsive mt-3">
+                        <table class="table">
+                            <thead style="background-color: #E9D5FF;">
+                                <tr>
+                                    <th colspan="2">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-balance-scale me-2"></i>EQUITY
+                                        </h5>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in equity_accounts %}
+                                {% with balance=account.get_balance %}
+                                <tr>
+                                    <td class="ps-4">{{ account.code }} - {{ account.name }}</td>
+                                    <td class="text-end">
+                                        {% if balance < 0 %}
+                                            ${{ balance|floatformat:2|slice:"1:" }}
+                                        {% else %}
+                                            ${{ balance|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                                <tr class="table-light">
+                                    <td class="ps-4"><strong>Total Equity</strong></td>
+                                    <td class="text-end"><strong>${{ total_equity|floatformat:2 }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total Liabilities + Equity -->
+                    <div class="table-responsive mt-3">
+                        <table class="table">
+                            <tfoot class="table-dark">
+                                <tr>
+                                    <th><strong>Total Liabilities + Equity</strong></th>
+                                    <th class="text-end"><strong>${{ total_liabilities_equity|floatformat:2 }}</strong></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Equation Verification -->
+            <div class="mt-4 p-4 rounded" style="background: {% if is_balanced %}#D1FAE5{% else %}#FEE2E2{% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            {% if is_balanced %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Balance Sheet Equation Verified
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                Balance Sheet Unbalanced
+                            {% endif %}
+                        </h5>
+                        <p class="mb-0 {% if is_balanced %}text-success{% else %}text-danger{% endif %}">
+                            Assets = Liabilities + Equity
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <h4 class="mb-0 {% if is_balanced %}text-success{% else %}text-danger{% endif %}">
+                            ${{ total_assets|floatformat:2 }} = ${{ total_liabilities_equity|floatformat:2 }}
+                        </h4>
+                        {% if not is_balanced %}
+                            <small class="text-danger">
+                                Difference: ${{ difference|floatformat:2 }}
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #cfe2ff 0%, #9ec5fe 100%);">
+                        <div class="card-body text-center">
+                            <div class="text-primary mb-2"><i class="fas fa-wallet fa-2x"></i></div>
+                            <h6 class="text-dark mb-2 fw-bold">Total Assets</h6>
+                            <h3 class="text-primary mb-0 fw-bold">${{ total_assets|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);">
+                        <div class="card-body text-center">
+                            <div class="text-danger mb-2"><i class="fas fa-credit-card fa-2x"></i></div>
+                            <h6 class="text-dark mb-2 fw-bold">Total Liabilities</h6>
+                            <h3 class="text-danger mb-0 fw-bold">${{ total_liabilities|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);">
+                        <div class="card-body text-center">
+                            <div class="mb-2" style="color: #7c3aed;"><i class="fas fa-balance-scale fa-2x"></i></div>
+                            <h6 class="text-dark mb-2 fw-bold">Total Equity</h6>
+                            <h3 class="mb-0 fw-bold" style="color: #7c3aed;">${{ total_equity|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="mt-4">
+                <canvas id="balanceSheetChart" height="80"></canvas>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-0 text-center text-muted">
+            <small>Generated on {{ today|date:"F d, Y h:i A" }}</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('balanceSheetChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Assets', 'Liabilities', 'Equity'],
+        datasets: [{
+            label: 'Amount ($)',
+            data: [{{ total_assets }}, {{ total_liabilities }}, {{ total_equity }}],
+            backgroundColor: [
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(168, 85, 247, 0.8)'
+            ],
+            borderColor: [
+                'rgb(59, 130, 246)',
+                'rgb(239, 68, 68)',
+                'rgb(168, 85, 247)'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Balance Sheet Overview'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function exportToExcel() {
+    let csv = 'BALANCE SHEET\n';
+    csv += 'As of: {{ as_of_date }}\n\n';
+    csv += 'ASSETS\n';
+    {% for account in asset_accounts %}
+    csv += '{{ account.name }},{{ account.get_balance }}\n';
+    {% endfor %}
+    csv += 'Total Assets,{{ total_assets }}\n\n';
+    csv += 'LIABILITIES\n';
+    {% for account in liability_accounts %}
+    csv += '{{ account.name }},{{ account.get_balance }}\n';
+    {% endfor %}
+    csv += 'Total Liabilities,{{ total_liabilities }}\n\n';
+    csv += 'EQUITY\n';
+    {% for account in equity_accounts %}
+    csv += '{{ account.name }},{{ account.get_balance }}\n';
+    {% endfor %}
+    csv += 'Total Equity,{{ total_equity }}\n\n';
+    csv += 'Total Liabilities + Equity,{{ total_liabilities_equity }}\n';
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'balance_sheet_{{ as_of_date }}.csv';
+    a.click();
+}
+</script>
+{% endblock %}
