@@ -15,23 +15,72 @@ from .services import NotificationService
 @login_required
 def dashboard(request):
     """
-    Main dashboard for the application
+    Main dashboard for the application with comprehensive statistics
     """
     from apps.properties.models import Property
     from apps.contracts.models import Contract
     from apps.maintenance.models import MaintenanceRequest
     from apps.sales.models import SalesContract, PropertyReservation
+    from apps.clients.models import Client
+    from apps.owners.models import Owner
+    from django.db.models import Count
+    import json
     
     # Get statistics
     today = timezone.now().date()
     
+    # Properties stats
+    total_properties = Property.objects.count()
+    available_properties = Property.objects.filter(status='available').count()
+    rented_properties = Property.objects.filter(status='rented').count()
+    
+    # Contracts stats
+    total_contracts = Contract.objects.count()
+    active_contracts = Contract.objects.filter(status='active').count()
+    
+    # Maintenance stats
+    pending_maintenance = MaintenanceRequest.objects.filter(status='pending').count()
+    in_progress_maintenance = MaintenanceRequest.objects.filter(status='in_progress').count()
+    
+    # Clients & Owners
+    total_clients = Client.objects.filter(is_active=True).count()
+    total_owners = Owner.objects.filter(is_active=True).count()
+    
+    # Sales stats
+    total_sales = SalesContract.objects.filter(status='active').count()
+    pending_reservations = PropertyReservation.objects.filter(status='pending').count()
+    
+    # Recent data
+    recent_contracts = Contract.objects.select_related('property', 'client').order_by('-created_at')[:5]
+    recent_maintenance = MaintenanceRequest.objects.select_related('property').order_by('-request_date')[:5]
+    
+    # Chart data - Properties by type
+    property_types = Property.objects.values('property_type__name').annotate(count=Count('id')).order_by('-count')[:5]
+    chart_labels = [item['property_type__name'] or 'Unknown' for item in property_types]
+    chart_data = [item['count'] for item in property_types]
+    
     context = {
-        'total_properties': Property.objects.count(),
-        'active_contracts': Contract.objects.filter(status='active').count(),
-        'pending_maintenance': MaintenanceRequest.objects.filter(status='pending').count(),
+        # Main stats
+        'total_properties': total_properties,
+        'available_properties': available_properties,
+        'rented_properties': rented_properties,
+        'active_contracts': active_contracts,
+        'total_contracts': total_contracts,
+        'pending_maintenance': pending_maintenance,
+        'in_progress_maintenance': in_progress_maintenance,
+        'total_clients': total_clients,
+        'total_owners': total_owners,
+        'total_sales': total_sales,
+        'pending_reservations': pending_reservations,
         'unread_notifications': Notification.objects.filter(user=request.user, is_read=False).count(),
-        'total_sales': SalesContract.objects.filter(status='active').count(),
-        'pending_reservations': PropertyReservation.objects.filter(status='pending').count(),
+        
+        # Recent data
+        'recent_contracts': recent_contracts,
+        'recent_maintenance': recent_maintenance,
+        
+        # Chart data
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
     }
     
     return render(request, 'dashboard.html', context)
