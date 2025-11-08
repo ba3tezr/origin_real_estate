@@ -812,8 +812,8 @@ def property_financial_report(request, pk):
     # ROI Calculation
     investment = property_obj.purchase_price or property_obj.market_value or 0
     if investment > 0:
-        current_roi = (current_year_profit / float(investment)) * 100
-        lifetime_roi = ((total_revenue - total_expenses) / float(investment)) * 100
+        current_roi = (float(current_year_profit) / float(investment)) * 100
+        lifetime_roi = ((float(total_revenue) - float(total_expenses)) / float(investment)) * 100
     else:
         current_roi = 0
         lifetime_roi = 0

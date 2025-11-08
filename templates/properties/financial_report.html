@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Financial Report - {{ property.code }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-chart-line text-success"></i>
+                Financial Report
+            </h1>
+            <p class="text-muted mb-0">{{ property.code }} - {{ property.title }}</p>
+        </div>
+        <div>
+            <a href="{% url 'properties:detail' property.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Property
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Total Revenue</h6>
+                    <h3 class="mb-0">EGP {{ total_revenue|floatformat:0 }}</h3>
+                    <small>All Time</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Total Expenses</h6>
+                    <h3 class="mb-0">EGP {{ total_expenses|floatformat:0 }}</h3>
+                    <small>All Time</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Net Profit</h6>
+                    <h3 class="mb-0">EGP {{ total_profit|floatformat:0 }}</h3>
+                    <small>All Time</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Lifetime ROI</h6>
+                    <h3 class="mb-0">{{ lifetime_roi }}%</h3>
+                    <small>Return on Investment</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Year vs Last Year -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ current_year }} Performance</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Revenue:</strong></td>
+                            <td class="text-end text-success">EGP {{ current_year_revenue|floatformat:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Expenses:</strong></td>
+                            <td class="text-end text-danger">EGP {{ current_year_expense|floatformat:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Net Profit:</strong></td>
+                            <td class="text-end"><strong>EGP {{ current_year_profit|floatformat:0 }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ROI:</strong></td>
+                            <td class="text-end"><strong>{{ current_roi }}%</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">{{ last_year }} Performance</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Revenue:</strong></td>
+                            <td class="text-end text-success">EGP {{ last_year_revenue|floatformat:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Expenses:</strong></td>
+                            <td class="text-end text-danger">EGP {{ last_year_expense|floatformat:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Net Profit:</strong></td>
+                            <td class="text-end"><strong>EGP {{ last_year_profit|floatformat:0 }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Breakdown -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Monthly Breakdown - {{ current_year }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th class="text-end">Revenue</th>
+                            <th class="text-end">Expenses</th>
+                            <th class="text-end">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for month_data in monthly_data %}
+                        <tr>
+                            <td>Month {{ month_data.month }}</td>
+                            <td class="text-end text-success">EGP {{ month_data.revenue|floatformat:0 }}</td>
+                            <td class="text-end text-danger">EGP {{ month_data.expense|floatformat:0 }}</td>
+                            <td class="text-end">
+                                <strong class="{% if month_data.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    EGP {{ month_data.profit|floatformat:0 }}
+                                </strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue & Expense Breakdown -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Revenue by Type</h5>
+                </div>
+                <div class="card-body">
+                    {% if revenue_by_type %}
+                    <table class="table table-sm">
+                        {% for item in revenue_by_type %}
+                        <tr>
+                            <td>{{ item.revenue_type|title }}</td>
+                            <td class="text-end">EGP {{ item.total|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No revenue data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Expenses by Type</h5>
+                </div>
+                <div class="card-body">
+                    {% if expense_by_type %}
+                    <table class="table table-sm">
+                        {% for item in expense_by_type %}
+                        <tr>
+                            <td>{{ item.expense_type|title }}</td>
+                            <td class="text-end">EGP {{ item.total|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No expense data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

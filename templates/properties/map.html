@@ -5,7 +5,7 @@
 {% block page_title %}Properties Map{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+4wG8u1J5rG32nPxM90YzH5fV7kPaWY5Av2P3I1Cw=" crossorigin="" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <style>
     #propertiesMap { height: 70vh; border-radius: 1rem; }
     .map-sidebar { max-height: 70vh; overflow-y: auto; }
@@ -41,11 +41,15 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-vkBUGRj0C1X0iLHwQdHVR9zN1C6i9gATeO1j9C8gIKA=" crossorigin=""></script>
-{{ property_markers|json_script:"marker-data" }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
-    const markerData = JSON.parse(document.getElementById('marker-data').textContent);
-    const map = L.map('propertiesMap').setView([24.7136, 46.6753], 5);
+    // Property markers data
+    const markerData = {{ property_markers|safe }};
+    console.log('Marker Data:', markerData);
+    console.log('Total Markers:', markerData.length);
+    
+    // Initialize map centered on Egypt
+    const map = L.map('propertiesMap').setView([26.8206, 30.8025], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
@@ -87,9 +91,16 @@
         listContainer.appendChild(item);
     });
 
-    if (markers.length) {
+    // Fit map to show all markers
+    if (markers.length > 0) {
         const group = L.featureGroup(markers);
         map.fitBounds(group.getBounds().pad(0.2));
+    } else {
+        console.warn('No markers found!');
+        // Show message if no properties have coordinates
+        if (markerData.length === 0) {
+            alert('لا توجد عقارات مع إحداثيات GPS على الخريطة');
+        }
     }
 </script>
 {% endblock %}

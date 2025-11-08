@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Compare Properties{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-1">
+            <i class="fas fa-exchange-alt text-primary"></i>
+            Compare Properties
+        </h1>
+        <p class="text-muted mb-0">Compare up to 4 properties side by side</p>
+    </div>
+
+    <!-- Selection Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Select Properties to Compare</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'properties:comparison' %}">
+                <div class="row g-3">
+                    <div class="col-md-10">
+                        <select name="properties" class="form-select" multiple size="6">
+                            {% for prop in all_properties %}
+                            <option value="{{ prop.pk }}" {% if prop.pk in selected_ids %}selected{% endif %}>
+                                {{ prop.code }} - {{ prop.title }} ({{ prop.city }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple properties (max 4)</small>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Compare
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    {% if properties %}
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Property Comparison</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th width="20%">Feature</th>
+                            {% for property in properties %}
+                            <th class="text-center">{{ property.code }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Title</strong></td>
+                            {% for property in properties %}
+                            <td>{{ property.title }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Type</strong></td>
+                            {% for property in properties %}
+                            <td>{{ property.property_type.name }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Owner</strong></td>
+                            {% for property in properties %}
+                            <td>{{ property.owner.name }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>City</strong></td>
+                            {% for property in properties %}
+                            <td>{{ property.city }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="table-light">
+                            <td><strong>Area (m²)</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center"><strong>{{ property.area_sqm }}</strong></td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Bedrooms</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">{{ property.bedrooms }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Bathrooms</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">{{ property.bathrooms }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Parking</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">{{ property.parking_spaces }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Year Built</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">{{ property.year_built|default:"N/A" }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="table-light">
+                            <td><strong>Monthly Rent</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.rental_price_monthly %}
+                                    <strong>EGP {{ property.rental_price_monthly|floatformat:0 }}</strong>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Market Value</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.market_value %}
+                                    EGP {{ property.market_value|floatformat:0 }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Furnished</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.is_furnished %}
+                                    <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Elevator</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.has_elevator %}
+                                    <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Pool</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.has_pool %}
+                                    <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Garden</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                {% if property.has_garden %}
+                                    <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="table-light">
+                            <td><strong>Status</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                <span class="badge bg-{% if property.status == 'available' %}success{% elif property.status == 'rented' %}primary{% else %}secondary{% endif %}">
+                                    {{ property.get_status_display }}
+                                </span>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td><strong>Actions</strong></td>
+                            {% for property in properties %}
+                            <td class="text-center">
+                                <a href="{% url 'properties:detail' property.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+            <h5>No Properties Selected</h5>
+            <p class="text-muted">Please select properties from the dropdown above to compare them.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Occupancy History - {{ property.code }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-calendar-alt text-info"></i>
+                Occupancy History
+            </h1>
+            <p class="text-muted mb-0">{{ property.code }} - {{ property.title }}</p>
+        </div>
+        <div>
+            <a href="{% url 'properties:detail' property.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Property
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ occupancy_rate }}%</h2>
+                    <small>Occupancy Rate</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ total_contracts }}</h2>
+                    <small>Total Contracts</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ active_contracts }}</h2>
+                    <small>Active Contracts</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ total_vacancy_days }}</h2>
+                    <small>Total Vacancy Days</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contracts Timeline -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Contracts History</h5>
+        </div>
+        <div class="card-body">
+            {% if contracts %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Contract</th>
+                            <th>Client</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Rent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contract in contracts %}
+                        <tr>
+                            <td>{{ contract.contract_number }}</td>
+                            <td>{{ contract.client.name }}</td>
+                            <td>{{ contract.start_date|date:"M d, Y" }}</td>
+                            <td>{% if contract.end_date %}{{ contract.end_date|date:"M d, Y" }}{% else %}Ongoing{% endif %}</td>
+                            <td>{{ contract.get_duration_months }} months</td>
+                            <td>
+                                {% if contract.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elif contract.status == 'expired' %}
+                                    <span class="badge bg-warning text-dark">Expired</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ contract.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>EGP {{ contract.rent_amount|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h5>No Contracts Yet</h5>
+                <p class="text-muted">This property has no contract history.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Vacancy Periods -->
+    {% if vacancy_periods %}
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Vacancy Periods</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Duration (Days)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in vacancy_periods %}
+                        <tr>
+                            <td>{{ period.start|date:"M d, Y" }}</td>
+                            <td>{{ period.end|date:"M d, Y" }}</td>
+                            <td><strong>{{ period.days }}</strong> days</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
