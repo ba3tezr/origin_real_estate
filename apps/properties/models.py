@@ -155,6 +155,17 @@ class Property(models.Model):
     )
     is_active = models.BooleanField(_('Active'), default=True)
     
+    # Sales-specific fields
+    is_for_sale = models.BooleanField(_('For Sale'), default=False)
+    sale_price = models.DecimalField(
+        _('Sale Price'),
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_('Property sale price')
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Updated At'), auto_now=True)

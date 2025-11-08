@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reservation {{ reservation.reservation_number }} - Origin App{% endblock %}
+
+{% block page_title %}Reservation Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="mb-2">
+                        <i class="fas fa-bookmark text-danger me-2"></i>
+                        {{ reservation.reservation_number }}
+                    </h2>
+                    <div>
+                        {% if reservation.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif reservation.status == 'pending' %}
+                        <span class="badge bg-warning">Pending</span>
+                        {% elif reservation.status == 'converted' %}
+                        <span class="badge bg-info">Converted to Sale</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ reservation.get_status_display }}</span>
+                        {% endif %}
+                        
+                        {% if reservation.is_expired %}
+                        <span class="badge bg-danger ms-2">Expired</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="btn-group">
+                    {% if reservation.status == 'pending' %}
+                    <a href="{% url 'sales:reservation_approve' reservation.pk %}" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Approve
+                    </a>
+                    <a href="{% url 'sales:reservation_cancel' reservation.pk %}" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    {% endif %}
+                    {% if reservation.status == 'approved' %}
+                    <a href="{% url 'sales:reservation_convert' reservation.pk %}" class="btn btn-info">
+                        <i class="fas fa-exchange-alt me-2"></i>Convert to Contract
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'sales:reservation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-6">
+            <!-- Property Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building text-primary me-2"></i>
+                        Property Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Property Code</small>
+                        <p class="mb-0 fw-bold">{{ reservation.property.code }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Title</small>
+                        <p class="mb-0">{{ reservation.property.title }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">City</small>
+                        <p class="mb-0">{{ reservation.property.city }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'properties:detail' reservation.property.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>View Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buyer Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user text-success me-2"></i>
+                        Buyer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Name</small>
+                        <p class="mb-0 fw-bold">{{ reservation.buyer.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Phone</small>
+                        <p class="mb-0">{{ reservation.buyer.phone }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0">{{ reservation.buyer.email }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'sales:buyer_detail' reservation.buyer.pk %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-eye me-2"></i>View Buyer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-6">
+            <!-- Reservation Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        Reservation Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Reservation Date</small>
+                        <p class="mb-0 fw-bold">{{ reservation.reservation_date|date:"F d, Y - H:i" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Expiry Date</small>
+                        <p class="mb-0 {% if reservation.is_expired %}text-danger fw-bold{% endif %}">
+                            {{ reservation.expiry_date|date:"F d, Y" }}
+                            {% if reservation.is_expired %}
+                            <span class="badge bg-danger ms-2">Expired</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Reservation Amount</small>
+                        <p class="mb-0 text-success fw-bold fs-4">EGP {{ reservation.reservation_amount|floatformat:0 }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Payment Method</small>
+                        <p class="mb-0">{{ reservation.get_payment_method_display }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Payment Reference</small>
+                        <p class="mb-0"><code>{{ reservation.payment_reference }}</code></p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Reserved By</small>
+                        <p class="mb-0">{{ reservation.reserved_by.get_full_name|default:reservation.reserved_by.username }}</p>
+                    </div>
+                    {% if reservation.notes %}
+                    <div class="mb-3">
+                        <small class="text-muted">Notes</small>
+                        <p class="mb-0">{{ reservation.notes }}</p>
+                    </div>
+                    {% endif %}
+                    {% if reservation.cancellation_reason %}
+                    <div class="alert alert-danger">
+                        <strong>Cancellation Reason:</strong><br>
+                        {{ reservation.cancellation_reason }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

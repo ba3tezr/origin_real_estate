@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ buyer.name }} - Origin App{% endblock %}
+
+{% block page_title %}Buyer Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header with Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-user text-primary me-2"></i>
+                {{ buyer.name }}
+            </h2>
+            <p class="text-muted mb-0">
+                <span class="badge bg-info">{{ buyer.get_buyer_type_display }}</span>
+                {% if buyer.is_qualified %}
+                <span class="badge bg-success">Qualified</span>
+                {% else %}
+                <span class="badge bg-secondary">Not Qualified</span>
+                {% endif %}
+                {% if not buyer.is_active %}
+                <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'sales:buyer_update' buyer.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>
+                Edit
+            </a>
+            {% if not buyer.is_qualified %}
+            <a href="{% url 'sales:buyer_qualify' buyer.pk %}" class="btn btn-success">
+                <i class="fas fa-check me-2"></i>
+                Qualify
+            </a>
+            {% endif %}
+            <a href="{% url 'sales:buyer_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Basic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Full Name</label>
+                            <div class="fw-bold">{{ buyer.name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">National ID</label>
+                            <div class="fw-bold">{{ buyer.national_id }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Phone</label>
+                            <div><i class="fas fa-phone me-2 text-primary"></i>{{ buyer.phone }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Email</label>
+                            <div><i class="fas fa-envelope me-2 text-primary"></i>{{ buyer.email }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">City</label>
+                            <div>{{ buyer.city }}, {{ buyer.country }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Address</label>
+                            <div>{{ buyer.address }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if buyer.buyer_type == 'company' %}
+            <!-- Company Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building text-info me-2"></i>
+                        Company Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Company Name</label>
+                            <div class="fw-bold">{{ buyer.company_name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Registration Number</label>
+                            <div>{{ buyer.company_registration }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Tax ID</label>
+                            <div>{{ buyer.tax_id }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Financial Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign text-success me-2"></i>
+                        Financial Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Annual Income</label>
+                            <div class="fw-bold text-success">EGP {{ buyer.annual_income|floatformat:0 }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Credit Score</label>
+                            <div>
+                                {% if buyer.credit_score >= 700 %}
+                                <span class="badge bg-success fs-6">{{ buyer.credit_score }}</span>
+                                <small class="text-success ms-2">Excellent</small>
+                                {% elif buyer.credit_score >= 600 %}
+                                <span class="badge bg-warning fs-6">{{ buyer.credit_score }}</span>
+                                <small class="text-warning ms-2">Good</small>
+                                {% else %}
+                                <span class="badge bg-danger fs-6">{{ buyer.credit_score }}</span>
+                                <small class="text-danger ms-2">Poor</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if buyer.financing_approved %}
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Financing Institution</label>
+                            <div>{{ buyer.financing_institution }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Approved Loan Amount</label>
+                            <div class="fw-bold">EGP {{ buyer.approved_loan_amount|floatformat:0 }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-calculator me-2"></i>
+                                <strong>Purchasing Power:</strong> EGP {{ purchasing_power|floatformat:0 }}
+                                <small class="d-block mt-1">Based on 3.5x annual income + approved loan</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if buyer.has_agent %}
+            <!-- Agent Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-tie text-warning me-2"></i>
+                        Agent/Representative
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Agent Name</label>
+                            <div class="fw-bold">{{ buyer.agent_name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Agent Phone</label>
+                            <div>{{ buyer.agent_phone }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">License Number</label>
+                            <div>{{ buyer.agent_license }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reservations -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bookmark text-danger me-2"></i>
+                        Reservations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if reservations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Number</th>
+                                    <th>Property</th>
+                                    <th>Amount</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'sales:reservation_detail' reservation.pk %}">
+                                            {{ reservation.reservation_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ reservation.property.code }}</td>
+                                    <td>EGP {{ reservation.reservation_amount|floatformat:0 }}</td>
+                                    <td>{{ reservation.expiry_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ reservation.status|yesno:'success,warning,secondary' }}">
+                                            {{ reservation.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-bookmark fa-2x mb-2 opacity-25"></i>
+                        <p class="mb-0">No reservations yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Purchase History -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-signature text-success me-2"></i>
+                        Purchase History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if purchases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Property</th>
+                                    <th>Sale Price</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in purchases %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'sales:contract_detail' contract.pk %}">
+                                            {{ contract.contract_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ contract.property.code }}</td>
+                                    <td class="fw-bold">EGP {{ contract.sale_price|floatformat:0 }}</td>
+                                    <td>{{ contract.contract_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ contract.status|yesno:'success,info,secondary' }}">
+                                            {{ contract.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ contract.get_payment_progress_percentage }}%"
+                                                 aria-valuenow="{{ contract.get_payment_progress_percentage }}" 
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                                {{ contract.get_payment_progress_percentage|floatformat:0 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-file-signature fa-2x mb-2 opacity-25"></i>
+                        <p class="mb-0">No purchases yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Quick Stats -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'sales:reservation_create' %}?buyer={{ buyer.pk }}" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-bookmark me-2"></i>
+                        Create Reservation
+                    </a>
+                    <a href="{% url 'sales:contract_create' %}?buyer={{ buyer.pk }}" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-file-signature me-2"></i>
+                        Create Sales Contract
+                    </a>
+                    <a href="{% url 'sales:buyer_update' buyer.pk %}" class="btn btn-warning w-100 mb-2">
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Information
+                    </a>
+                    <a href="{% url 'sales:buyer_delete' buyer.pk %}" class="btn btn-danger w-100">
+                        <i class="fas fa-trash me-2"></i>
+                        Delete Buyer
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <div>
+                            <div class="text-muted small">Total Reservations</div>
+                            <div class="h4 mb-0">{{ reservations|length }}</div>
+                        </div>
+                        <i class="fas fa-bookmark fa-2x text-primary opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <div>
+                            <div class="text-muted small">Total Purchases</div>
+                            <div class="h4 mb-0">{{ purchases|length }}</div>
+                        </div>
+                        <i class="fas fa-file-signature fa-2x text-success opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Member Since</div>
+                            <div class="fw-bold">{{ buyer.created_at|date:"M d, Y" }}</div>
+                        </div>
+                        <i class="fas fa-calendar fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">Activity Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <i class="fas fa-user-plus text-primary"></i>
+                            <div>
+                                <div class="fw-bold">Buyer Created</div>
+                                <small class="text-muted">{{ buyer.created_at|date:"M d, Y - H:i" }}</small>
+                            </div>
+                        </div>
+                        {% if buyer.is_qualified %}
+                        <div class="timeline-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <div class="fw-bold">Qualified</div>
+                                <small class="text-muted">Buyer qualified for purchases</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+.timeline-item i {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 20px;
+    text-align: center;
+}
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 20px;
+    bottom: -20px;
+    width: 2px;
+    background: #e0e0e0;
+}
+</style>
+{% endblock %}

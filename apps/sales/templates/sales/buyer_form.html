@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Origin App{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-user-plus text-primary me-2"></i>
+                    {{ title }}
+                </h2>
+                <a href="{% if buyer %}{% url 'sales:buyer_detail' buyer.pk %}{% else %}{% url 'sales:buyer_list' %}{% endif %}" 
+                   class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                </a>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Please correct the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Basic Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Basic Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.buyer_type.label }} *</label>
+                                {{ form.buyer_type }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.name.label }} *</label>
+                                {{ form.name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.phone.label }} *</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.email.label }} *</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.national_id.label }} *</label>
+                                {{ form.national_id }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.city.label }}</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.country.label }}</label>
+                                {{ form.country }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.address.label }}</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Information -->
+                <div class="card border-0 shadow-sm mb-4" id="company-section">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building text-info me-2"></i>
+                            Company Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.company_name.label }}</label>
+                                {{ form.company_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.company_registration.label }}</label>
+                                {{ form.company_registration }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.tax_id.label }}</label>
+                                {{ form.tax_id }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-dollar-sign text-success me-2"></i>
+                            Financial Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.annual_income.label }}</label>
+                                {{ form.annual_income }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.credit_score.label }}</label>
+                                {{ form.credit_score }}
+                                <small class="form-text text-muted d-block">Range: 300-850</small>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.financing_approved }}
+                                    <label class="form-check-label" for="{{ form.financing_approved.id_for_label }}">
+                                        {{ form.financing_approved.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.financing_institution.label }}</label>
+                                {{ form.financing_institution }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.approved_loan_amount.label }}</label>
+                                {{ form.approved_loan_amount }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-upload text-warning me-2"></i>
+                            Documents
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.id_document.label }}</label>
+                                {{ form.id_document }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.income_proof.label }}</label>
+                                {{ form.income_proof }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie text-secondary me-2"></i>
+                            Agent/Representative (Optional)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.has_agent }}
+                                    <label class="form-check-label" for="{{ form.has_agent.id_for_label }}">
+                                        {{ form.has_agent.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.agent_name.label }}</label>
+                                {{ form.agent_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.agent_phone.label }}</label>
+                                {{ form.agent_phone }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.agent_license.label }}</label>
+                                {{ form.agent_license }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-toggle-on text-primary me-2"></i>
+                            Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_qualified }}
+                                    <label class="form-check-label" for="{{ form.is_qualified.id_for_label }}">
+                                        {{ form.is_qualified.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if buyer %}{% url 'sales:buyer_detail' buyer.pk %}{% else %}{% url 'sales:buyer_list' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-save me-2"></i>
+                                Save Buyer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Show/hide company section based on buyer type
+document.addEventListener('DOMContentLoaded', function() {
+    const buyerTypeSelect = document.getElementById('id_buyer_type');
+    const companySection = document.getElementById('company-section');
+    
+    function toggleCompanySection() {
+        if (buyerTypeSelect.value === 'company') {
+            companySection.style.display = 'block';
+        } else {
+            companySection.style.display = 'none';
+        }
+    }
+    
+    buyerTypeSelect.addEventListener('change', toggleCompanySection);
+    toggleCompanySection();
+});
+</script>
+{% endblock %}

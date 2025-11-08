@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reservations - Origin App{% endblock %}
+
+{% block page_title %}Property Reservations{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-bookmark text-danger me-2"></i>
+                Property Reservations
+            </h2>
+            <p class="text-muted mb-0">Manage property reservations and bookings.</p>
+        </div>
+        <a href="{% url 'sales:reservation_create' %}" class="btn btn-danger">
+            <i class="fas fa-plus me-2"></i>
+            New Reservation
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Total Reservations</div>
+                            <h3 class="mb-0">{{ total_reservations }}</h3>
+                        </div>
+                        <i class="fas fa-bookmark fa-2x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Approved</div>
+                            <h3 class="mb-0 text-success">{{ active_reservations }}</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Pending</div>
+                            <h3 class="mb-0 text-warning">{{ pending_reservations }}</h3>
+                        </div>
+                        <i class="fas fa-clock fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Expired</div>
+                            <h3 class="mb-0 text-danger">{{ expired_reservations }}</h3>
+                        </div>
+                        <i class="fas fa-times-circle fa-2x text-danger opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="converted" {% if status_filter == 'converted' %}selected{% endif %}>Converted</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reservations Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Reservation #</th>
+                            <th>Property</th>
+                            <th>Buyer</th>
+                            <th>Amount</th>
+                            <th>Reserved Date</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in page_obj %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'sales:reservation_detail' reservation.pk %}" class="fw-bold text-decoration-none">
+                                    {{ reservation.reservation_number }}
+                                </a>
+                            </td>
+                            <td>
+                                <div>{{ reservation.property.code }}</div>
+                                <small class="text-muted">{{ reservation.property.title|truncatewords:4 }}</small>
+                            </td>
+                            <td>{{ reservation.buyer.name }}</td>
+                            <td class="fw-bold text-success">EGP {{ reservation.reservation_amount|floatformat:0 }}</td>
+                            <td>{{ reservation.reservation_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if reservation.is_expired %}
+                                <span class="text-danger">{{ reservation.expiry_date|date:"M d, Y" }}</span>
+                                <small class="d-block text-danger">Expired</small>
+                                {% else %}
+                                {{ reservation.expiry_date|date:"M d, Y" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if reservation.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% elif reservation.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif reservation.status == 'converted' %}
+                                <span class="badge bg-info">Converted</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ reservation.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'sales:reservation_detail' reservation.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if reservation.status == 'pending' %}
+                                    <a href="{% url 'sales:reservation_approve' reservation.pk %}" 
+                                       class="btn btn-sm btn-outline-success" title="Approve">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if reservation.status == 'approved' %}
+                                    <a href="{% url 'sales:reservation_convert' reservation.pk %}" 
+                                       class="btn btn-sm btn-outline-info" title="Convert to Sale">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-bookmark fa-4x text-muted mb-3 opacity-25"></i>
+                <h4 class="text-muted">No reservations found</h4>
+                <p class="text-muted">Start by creating a new reservation</p>
+                <a href="{% url 'sales:reservation_create' %}" class="btn btn-danger">
+                    <i class="fas fa-plus me-2"></i>
+                    Create First Reservation
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -114,15 +114,27 @@ def client_update(request, pk):
 
 @login_required
 def client_detail(request, pk):
-    """Client detail view with contracts"""
+    """Client detail view with contracts and properties"""
     client = get_object_or_404(Client, pk=pk)
-    contracts = client.contracts.select_related('property').all()
+    
+    # Get all rental contracts
+    contracts = client.contracts.select_related('property', 'property__property_type').all()
+    
+    # Get properties from contracts
+    properties = [contract.property for contract in contracts if contract.property]
+    
+    # Statistics
+    active_contracts_count = contracts.filter(status='active').count()
+    expired_contracts_count = contracts.filter(status='expired').count()
     
     context = {
         'client': client,
         'contracts': contracts,
+        'properties': properties,
         'contracts_count': contracts.count(),
-        'active_contracts': contracts.filter(status='active').count(),
+        'active_contracts': active_contracts_count,
+        'expired_contracts': expired_contracts_count,
+        'properties_count': len(properties),
     }
     return render(request, 'clients/detail.html', context)
 

@@ -19,6 +19,7 @@ urlpatterns += i18n_patterns(
     path('clients/', include('apps.clients.urls')),
     path('properties/', include('apps.properties.urls')),
     path('contracts/', include('apps.contracts.urls')),
+    path('sales/', include('apps.sales.urls')),
     path('maintenance/', include('apps.maintenance.urls')),
     path('financial/', include('apps.financial.urls')),
     # path('reports/', include('apps.reports.urls')),  # TODO: قيد التطوير

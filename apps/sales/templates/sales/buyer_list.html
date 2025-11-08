@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buyers - Origin App{% endblock %}
+
+{% block page_title %}Buyers{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-users text-primary me-2"></i>
+                Buyers
+            </h2>
+            <p class="text-muted mb-0">Manage property buyers and their information.</p>
+        </div>
+        <a href="{% url 'sales:buyer_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>
+            Add New Buyer
+        </a>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.buyer_type }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.is_qualified }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.is_active }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Total Buyers</div>
+                            <h3 class="mb-0">{{ total_buyers }}</h3>
+                        </div>
+                        <i class="fas fa-users fa-2x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Qualified</div>
+                            <h3 class="mb-0 text-success">{{ page_obj.paginator.object_list|length }}</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Individuals</div>
+                            <h3 class="mb-0 text-info">-</h3>
+                        </div>
+                        <i class="fas fa-user fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-muted small">Companies</div>
+                            <h3 class="mb-0 text-warning">-</h3>
+                        </div>
+                        <i class="fas fa-building fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buyers Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Contact</th>
+                            <th>Credit Score</th>
+                            <th>Annual Income</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for buyer in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <a href="{% url 'sales:buyer_detail' buyer.pk %}" class="text-decoration-none">
+                                                {{ buyer.name }}
+                                            </a>
+                                        </div>
+                                        <small class="text-muted">{{ buyer.national_id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ buyer.get_buyer_type_display }}</span>
+                            </td>
+                            <td>
+                                <div>{{ buyer.phone }}</div>
+                                <small class="text-muted">{{ buyer.email }}</small>
+                            </td>
+                            <td>
+                                {% if buyer.credit_score >= 700 %}
+                                <span class="badge bg-success">{{ buyer.credit_score }}</span>
+                                {% elif buyer.credit_score >= 600 %}
+                                <span class="badge bg-warning">{{ buyer.credit_score }}</span>
+                                {% else %}
+                                <span class="badge bg-danger">{{ buyer.credit_score }}</span>
+                                {% endif %}
+                            </td>
+                            <td>EGP {{ buyer.annual_income|floatformat:0 }}</td>
+                            <td>
+                                {% if buyer.is_qualified %}
+                                <span class="badge bg-success">Qualified</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Not Qualified</span>
+                                {% endif %}
+                                {% if not buyer.is_active %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'sales:buyer_detail' buyer.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'sales:buyer_update' buyer.pk %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if not buyer.is_qualified %}
+                                    <a href="{% url 'sales:buyer_qualify' buyer.pk %}" class="btn btn-sm btn-outline-success" title="Qualify">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-4x text-muted mb-3 opacity-25"></i>
+                <h4 class="text-muted">No buyers found</h4>
+                <p class="text-muted">Start by adding a new buyer</p>
+                <a href="{% url 'sales:buyer_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Add First Buyer
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

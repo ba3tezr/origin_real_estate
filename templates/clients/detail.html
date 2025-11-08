@@ -1,155 +1,376 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ owner.name }}{% endblock %}
-{% block page_title %}Owner Details{% endblock %}
+{% block title %}{{ client.name }} - Origin App{% endblock %}
+{% block page_title %}Client Details{% endblock %}
 
 {% block content %}
-<div class="card mb-4">
-    <div class="card-body d-flex justify-content-between align-items-start">
-        <div>
-            <h3 class="mb-2">{{ owner.name }}</h3>
-            <div class="d-flex flex-wrap gap-3 text-muted">
-                <span><i class="fas fa-envelope me-1"></i>{{ owner.email|default:'-' }}</span>
-                <span><i class="fas fa-phone me-1"></i>{{ owner.phone }}</span>
-                <span><i class="fas fa-id-card me-1"></i>{{ owner.national_id }}</span>
-                {% if owner.is_active %}
-                    <span class="text-success"><i class="fas fa-circle me-1"></i>Active</span>
-                {% else %}
-                    <span class="text-danger"><i class="fas fa-circle me-1"></i>Inactive</span>
-                {% endif %}
-            </div>
-        </div>
-        <div class="btn-group">
-            <a href="{% url 'owners:update' owner.pk %}" class="btn btn-warning">
-                <i class="fas fa-edit me-2"></i>Edit
-            </a>
-            <a href="{% url 'owners:delete' owner.pk %}" class="btn btn-danger">
-                <i class="fas fa-trash me-2"></i>Delete
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Information</h5></div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted">Location</small>
-                    <p class="mb-0">{{ owner.address|default:'-' }}</p>
-                    <p class="mb-0">{{ owner.city|default:'-' }}{% if owner.country %}, {{ owner.country }}{% endif %}</p>
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted">Tax ID</small>
-                    <p class="mb-0">{{ owner.tax_id|default:'-' }}</p>
-                </div>
-                {% if owner.mobile %}
-                <div class="mb-3">
-                    <small class="text-muted">Mobile</small>
-                    <p class="mb-0">{{ owner.mobile }}</p>
-                </div>
-                {% endif %}
-                <div class="mb-0">
-                    <small class="text-muted">Joined</small>
-                    <p class="mb-0">{{ owner.created_at|date:'F j, Y' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Statistics</h5></div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted">Total Properties</small>
-                    <h4 class="mb-0">{{ properties_count }}</h4>
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted">Active Properties</small>
-                    <h4 class="mb-0 text-success">{{ active_properties }}</h4>
-                </div>
-                <div class="mb-0">
-                    <small class="text-muted">Available</small>
-                    <h4 class="mb-0 text-info">{{ available_properties }}</h4>
-                </div>
-            </div>
-        </div>
-
-        {% if owner.notes %}
-        <div class="card mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Notes</h5></div>
-            <div class="card-body">
-                <p class="mb-0">{{ owner.notes|linebreaks }}</p>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-building me-2"></i>Properties</h5>
-                <span class="badge bg-primary">{{ properties_count }}</span>
-            </div>
-            <div class="card-body p-0">
-                {% if properties %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>City</th>
-                                    <th>Rent</th>
-                                    <th class="text-center">Status</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for property in properties %}
-                                <tr>
-                                    <td><strong>{{ property.code }}</strong></td>
-                                    <td>{{ property.title }}</td>
-                                    <td>{{ property.property_type.name }}</td>
-                                    <td>{{ property.city }}</td>
-                                    <td>${{ property.rental_price_monthly|default:'0.00'|floatformat:2 }}</td>
-                                    <td class="text-center">
-                                        {% if property.status == 'available' %}
-                                            <span class="badge bg-success">{{ property.get_status_display }}</span>
-                                        {% elif property.status == 'rented' %}
-                                            <span class="badge bg-primary">{{ property.get_status_display }}</span>
-                                        {% elif property.status == 'maintenance' %}
-                                            <span class="badge bg-warning text-dark">{{ property.get_status_display }}</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ property.get_status_display }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'properties:detail' property.pk %}" class="btn btn-sm btn-info" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="mb-2">
+                        <i class="fas fa-user-tie text-primary me-2"></i>
+                        {{ client.name }}
+                    </h2>
+                    <div class="d-flex flex-wrap gap-3 text-muted">
+                        <span><i class="fas fa-envelope me-2"></i>{{ client.email|default:'-' }}</span>
+                        <span><i class="fas fa-phone me-2"></i>{{ client.phone }}</span>
+                        <span><i class="fas fa-id-card me-2"></i>{{ client.national_id }}</span>
+                        {% if client.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No properties found.</p>
-                    </div>
-                {% endif %}
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'clients:update' client.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+                    <a href="{% url 'clients:delete' client.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </a>
+                    <a href="{% url 'clients:list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="mt-3">
-    <a href="{% url 'owners:list' %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Back to List
-    </a>
+    <div class="row g-4">
+        <!-- Left Column - Info & Stats -->
+        <div class="col-lg-4">
+            
+            <!-- Personal Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Full Name</small>
+                        <p class="mb-0 fw-bold">{{ client.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">National ID</small>
+                        <p class="mb-0">{{ client.national_id }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Phone</small>
+                        <p class="mb-0">{{ client.phone }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0">{{ client.email|default:'-' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Address</small>
+                        <p class="mb-0">{{ client.address|default:'-' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">City, Country</small>
+                        <p class="mb-0">{{ client.city|default:'-' }}{% if client.country %}, {{ client.country }}{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employment Info -->
+            {% if client.employer or client.occupation or client.monthly_income %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-briefcase text-success me-2"></i>
+                        Employment Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if client.employer %}
+                    <div class="mb-3">
+                        <small class="text-muted">Employer</small>
+                        <p class="mb-0 fw-bold">{{ client.employer }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.occupation %}
+                    <div class="mb-3">
+                        <small class="text-muted">Occupation</small>
+                        <p class="mb-0">{{ client.occupation }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.monthly_income %}
+                    <div class="mb-3">
+                        <small class="text-muted">Monthly Income</small>
+                        <p class="mb-0 text-success fw-bold">EGP {{ client.monthly_income|floatformat:0 }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Statistics -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-info me-2"></i>
+                        Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <div>
+                            <small class="text-muted">Total Contracts</small>
+                            <h4 class="mb-0">{{ contracts_count }}</h4>
+                        </div>
+                        <i class="fas fa-file-contract fa-2x text-primary opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <div>
+                            <small class="text-muted">Active Contracts</small>
+                            <h4 class="mb-0 text-success">{{ active_contracts }}</h4>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">Member Since</small>
+                            <div class="fw-bold">{{ client.created_at|date:"M d, Y" }}</div>
+                        </div>
+                        <i class="fas fa-calendar fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            {% if client.emergency_contact_name or client.emergency_contact_phone %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-phone-square text-danger me-2"></i>
+                        Emergency Contact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if client.emergency_contact_name %}
+                    <div class="mb-2">
+                        <small class="text-muted">Name</small>
+                        <p class="mb-0">{{ client.emergency_contact_name }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.emergency_contact_phone %}
+                    <div class="mb-0">
+                        <small class="text-muted">Phone</small>
+                        <p class="mb-0">{{ client.emergency_contact_phone }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right Column - Contracts & Properties -->
+        <div class="col-lg-8">
+            
+            <!-- Accordion for Contracts & Properties -->
+            <div class="accordion" id="clientDataAccordion">
+                
+                <!-- Active Contracts -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#activeContracts">
+                            <i class="fas fa-file-contract text-success me-2"></i>
+                            <strong>Active Rental Contracts</strong>
+                            <span class="badge bg-success ms-2">{{ active_contracts }}</span>
+                        </button>
+                    </h2>
+                    <div id="activeContracts" class="accordion-collapse collapse show" data-bs-parent="#clientDataAccordion">
+                        <div class="accordion-body p-0">
+                            {% if contracts %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Contract #</th>
+                                                <th>Property</th>
+                                                <th>Type</th>
+                                                <th>Rent</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for contract in contracts %}
+                                            {% if contract.status == 'active' %}
+                                            <tr>
+                                                <td><strong>{{ contract.contract_number }}</strong></td>
+                                                <td>{{ contract.property.code }}</td>
+                                                <td>{{ contract.get_contract_type_display }}</td>
+                                                <td class="text-success fw-bold">EGP {{ contract.rent_amount|floatformat:0 }}</td>
+                                                <td>{{ contract.start_date|date:"M d, Y" }}</td>
+                                                <td>{{ contract.end_date|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">Active</span>
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'contracts:detail' contract.pk %}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-file-contract fa-3x text-muted mb-3 opacity-25"></i>
+                                    <p class="text-muted mb-0">No active contracts</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Contracts -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#allContracts">
+                            <i class="fas fa-list text-primary me-2"></i>
+                            <strong>All Contracts</strong>
+                            <span class="badge bg-primary ms-2">{{ contracts_count }}</span>
+                        </button>
+                    </h2>
+                    <div id="allContracts" class="accordion-collapse collapse" data-bs-parent="#clientDataAccordion">
+                        <div class="accordion-body p-0">
+                            {% if contracts %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Contract #</th>
+                                                <th>Property</th>
+                                                <th>Rent</th>
+                                                <th>Period</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for contract in contracts %}
+                                            <tr>
+                                                <td><strong>{{ contract.contract_number }}</strong></td>
+                                                <td>
+                                                    <div>{{ contract.property.code }}</div>
+                                                    <small class="text-muted">{{ contract.property.title|truncatewords:5 }}</small>
+                                                </td>
+                                                <td class="fw-bold">EGP {{ contract.rent_amount|floatformat:0 }}</td>
+                                                <td>
+                                                    <small>{{ contract.start_date|date:"M Y" }} - {{ contract.end_date|date:"M Y" }}</small>
+                                                </td>
+                                                <td>
+                                                    {% if contract.status == 'active' %}
+                                                        <span class="badge bg-success">{{ contract.get_status_display }}</span>
+                                                    {% elif contract.status == 'expired' %}
+                                                        <span class="badge bg-secondary">{{ contract.get_status_display }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">{{ contract.get_status_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'contracts:detail' contract.pk %}" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3 opacity-25"></i>
+                                    <p class="text-muted mb-0">No contracts found</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rented Properties -->
+                <div class="accordion-item border-0 shadow-sm">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#properties">
+                            <i class="fas fa-building text-info me-2"></i>
+                            <strong>Rented Properties</strong>
+                            <span class="badge bg-info ms-2">{{ properties_count }}</span>
+                        </button>
+                    </h2>
+                    <div id="properties" class="accordion-collapse collapse" data-bs-parent="#clientDataAccordion">
+                        <div class="accordion-body p-0">
+                            {% if properties %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Title</th>
+                                                <th>Type</th>
+                                                <th>City</th>
+                                                <th>Rent</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for property in properties %}
+                                            <tr>
+                                                <td><strong>{{ property.code }}</strong></td>
+                                                <td>{{ property.title }}</td>
+                                                <td>{{ property.property_type.name }}</td>
+                                                <td>{{ property.city }}</td>
+                                                <td class="text-success">EGP {{ property.rental_price_monthly|floatformat:0 }}</td>
+                                                <td>
+                                                    {% if property.status == 'rented' %}
+                                                        <span class="badge bg-primary">Rented</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ property.get_status_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'properties:detail' property.pk %}" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-building fa-3x text-muted mb-3 opacity-25"></i>
+                                    <p class="text-muted mb-0">No rented properties</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- End Accordion -->
+
+        </div>
+    </div>
+
 </div>
 {% endblock %}

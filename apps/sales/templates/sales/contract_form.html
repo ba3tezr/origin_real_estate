@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Sales Contract - Origin App{% endblock %}
+
+{% block page_title %}Create Sales Contract{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-file-signature text-success me-2"></i>
+                    Create Sales Contract
+                </h2>
+                <a href="{% url 'sales:contract_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                </a>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Please correct the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Basic Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Contract Parties
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.property.label }} *</label>
+                                {{ form.property }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.buyer.label }} *</label>
+                                {{ form.buyer }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.seller.label }} *</label>
+                                {{ form.seller }}
+                                <small class="form-text text-muted">Property owner (seller)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price & Payment -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-dollar-sign text-success me-2"></i>
+                            Price & Payment
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.sale_price.label }} *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">EGP</span>
+                                    {{ form.sale_price }}
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.down_payment.label }} *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">EGP</span>
+                                    {{ form.down_payment }}
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.financed_amount.label }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">EGP</span>
+                                    {{ form.financed_amount }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financing Details -->
+                <div class="card border-0 shadow-sm mb-4" id="financing-section">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-university text-info me-2"></i>
+                            Financing Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.has_financing }}
+                                    <label class="form-check-label" for="{{ form.has_financing.id_for_label }}">
+                                        {{ form.has_financing.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.financing_institution.label }}</label>
+                                {{ form.financing_institution }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.financing_percentage.label }}</label>
+                                <div class="input-group">
+                                    {{ form.financing_percentage }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.financing_years.label }}</label>
+                                <div class="input-group">
+                                    {{ form.financing_years }}
+                                    <span class="input-group-text">Years</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar text-warning me-2"></i>
+                            Important Dates
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.contract_date.label }} *</label>
+                                {{ form.contract_date }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.expected_handover_date.label }} *</label>
+                                {{ form.expected_handover_date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Installments -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-money-check text-primary me-2"></i>
+                            Installment Plan
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.has_installments }}
+                                    <label class="form-check-label" for="{{ form.has_installments.id_for_label }}">
+                                        {{ form.has_installments.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.number_of_installments.label }}</label>
+                                {{ form.number_of_installments }}
+                                <small class="form-text text-muted">Payment plan will be auto-generated</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.installment_frequency.label }}</label>
+                                {{ form.installment_frequency }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Condition -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-home text-secondary me-2"></i>
+                            Property Condition
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    {{ form.sold_as_is }}
+                                    <label class="form-check-label" for="{{ form.sold_as_is.id_for_label }}">
+                                        {{ form.sold_as_is.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    {{ form.includes_furniture }}
+                                    <label class="form-check-label" for="{{ form.includes_furniture.id_for_label }}">
+                                        {{ form.includes_furniture.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.furniture_value.label }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">EGP</span>
+                                    {{ form.furniture_value }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legal Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-gavel text-danger me-2"></i>
+                            Legal Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.title_deed_number.label }}</label>
+                                {{ form.title_deed_number }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.notary_name.label }}</label>
+                                {{ form.notary_name }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.lawyer_name.label }}</label>
+                                {{ form.lawyer_name }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-contract text-info me-2"></i>
+                            Terms & Conditions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ form.terms_and_conditions.label }}</label>
+                                {{ form.terms_and_conditions }}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ form.special_conditions.label }}</label>
+                                {{ form.special_conditions }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Commission -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie text-warning me-2"></i>
+                            Agent Commission (Optional)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.has_agent }}
+                                    <label class="form-check-label" for="{{ form.has_agent.id_for_label }}">
+                                        {{ form.has_agent.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.agent_name.label }}</label>
+                                {{ form.agent_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.agent_commission_percentage.label }}</label>
+                                <div class="input-group">
+                                    {{ form.agent_commission_percentage }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comment text-secondary me-2"></i>
+                            Additional Notes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.notes.label }}</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'sales:contract_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success px-5">
+                                <i class="fas fa-file-signature me-2"></i>
+                                Create Contract & Generate Payment Plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sales Dashboard - Origin App{% endblock %}
+
+{% block page_title %}Sales Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="mb-1">
+            <i class="fas fa-handshake text-success me-2"></i>
+            Sales Dashboard
+        </h2>
+        <p class="text-muted mb-0">Overview of property sales, buyers, and transactions.</p>
+    </div>
+
+    <!-- Main Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Buyers Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="fs-6 opacity-75 mb-1">Total Buyers</div>
+                            <h2 class="mb-0 fw-bold">{{ total_buyers }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">
+                            <i class="fas fa-check-circle me-1"></i>
+                            {{ qualified_buyers }} Qualified
+                        </small>
+                        <a href="{% url 'sales:buyer_list' %}" class="btn btn-sm btn-light text-primary fw-bold">
+                            View <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservations Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="fs-6 opacity-75 mb-1">Active Reservations</div>
+                            <h2 class="mb-0 fw-bold">{{ active_reservations }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="fas fa-bookmark fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {{ expired_reservations }} Expired
+                        </small>
+                        <a href="{% url 'sales:reservation_list' %}" class="btn btn-sm btn-light text-danger fw-bold">
+                            View <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Contracts Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="fs-6 opacity-75 mb-1">Active Contracts</div>
+                            <h2 class="mb-0 fw-bold">{{ active_contracts }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="fas fa-file-signature fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">
+                            <i class="fas fa-chart-line me-1"></i>
+                            of {{ total_contracts }} Total
+                        </small>
+                        <a href="{% url 'sales:contract_list' %}" class="btn btn-sm btn-light text-info fw-bold">
+                            View <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Sales Value Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="fs-6 opacity-75 mb-1">Total Sales Value</div>
+                            <h2 class="mb-0 fw-bold">EGP {{ total_sales_value|floatformat:0|default:"0" }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ contracts_this_month }} This Month
+                        </small>
+                        <a href="{% url 'sales:payment_list' %}" class="btn btn-sm btn-light text-success fw-bold">
+                            View <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Statistics -->
+    <div class="row g-4 mb-4">
+        <!-- Payments Statistics -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-money-bill-wave text-success me-2"></i>
+                        Payments Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Total Payments</span>
+                            <span class="fw-bold">{{ total_payments }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">This Month</span>
+                            <span class="fw-bold text-success">EGP {{ payments_this_month|floatformat:0|default:"0" }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">This Year</span>
+                            <span class="fw-bold text-primary">EGP {{ payments_this_year|floatformat:0|default:"0" }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-info me-2"></i>
+                        Quick Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <div class="text-muted small">New Buyers (This Month)</div>
+                            <div class="h4 mb-0 fw-bold text-primary">{{ new_buyers_this_month }}</div>
+                        </div>
+                        <i class="fas fa-user-plus fa-2x text-primary opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <div class="text-muted small">Completed Contracts</div>
+                            <div class="h4 mb-0 fw-bold text-success">{{ completed_contracts }}</div>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Avg. Sale Value</div>
+                            <div class="h4 mb-0 fw-bold text-info">EGP {{ avg_sale_value|floatformat:0|default:"0" }}</div>
+                        </div>
+                        <i class="fas fa-calculator fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Alerts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if overdue_installments > 0 %}
+                    <div class="alert alert-danger mb-3">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>{{ overdue_installments }}</strong> overdue installments
+                        <a href="{% url 'sales:contract_list' %}?status=in_progress" class="alert-link float-end">View</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if expired_reservations > 0 %}
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>{{ expired_reservations }}</strong> expired reservations
+                        <a href="{% url 'sales:reservation_list' %}?status=pending" class="alert-link float-end">View</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if pending_reservations|length > 0 %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-hourglass-half me-2"></i>
+                        <strong>{{ pending_reservations|length }}</strong> pending reservations awaiting approval
+                        <a href="{% url 'sales:reservation_list' %}?status=pending" class="alert-link float-end">Review</a>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-check-circle fa-3x mb-3 opacity-25"></i>
+                        <p class="mb-0">No alerts at this time</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row g-4 mb-4">
+        <!-- Recent Contracts -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-contract text-primary me-2"></i>
+                            Recent Contracts
+                        </h5>
+                        <a href="{% url 'sales:contract_list' %}" class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_contracts %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Property</th>
+                                    <th>Buyer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in recent_contracts %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'sales:contract_detail' contract.pk %}" class="text-decoration-none">
+                                            {{ contract.contract_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ contract.property.code }}</td>
+                                    <td>{{ contract.buyer.name }}</td>
+                                    <td class="fw-bold">EGP {{ contract.sale_price|floatformat:0 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ contract.status|yesno:'success,warning,secondary' }}">
+                                            {{ contract.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-file-contract fa-3x mb-3 opacity-25"></i>
+                        <p class="mb-0">No recent contracts</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt text-success me-2"></i>
+                            Recent Payments
+                        </h5>
+                        <a href="{% url 'sales:payment_list' %}" class="btn btn-sm btn-outline-success">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Receipt</th>
+                                    <th>Contract</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.receipt_number }}</td>
+                                    <td>
+                                        <a href="{% url 'sales:contract_detail' payment.sales_contract.pk %}" class="text-decoration-none">
+                                            {{ payment.sales_contract.contract_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ payment.get_payment_type_display }}</td>
+                                    <td class="fw-bold text-success">EGP {{ payment.amount|floatformat:0 }}</td>
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-receipt fa-3x mb-3 opacity-25"></i>
+                        <p class="mb-0">No recent payments</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Buyers -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users text-info me-2"></i>
+                            Recent Buyers
+                        </h5>
+                        <a href="{% url 'sales:buyer_list' %}" class="btn btn-sm btn-outline-info">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_buyers %}
+                    <div class="row g-3">
+                        {% for buyer in recent_buyers %}
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'sales:buyer_detail' buyer.pk %}" class="text-decoration-none">
+                                            {{ buyer.name }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ buyer.get_buyer_type_display }}</small>
+                                    {% if buyer.is_qualified %}
+                                    <span class="badge bg-success ms-2">Qualified</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                        <p class="mb-0">No recent buyers</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

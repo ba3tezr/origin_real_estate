@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Reservation - Origin App{% endblock %}
+
+{% block page_title %}Create Property Reservation{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-bookmark text-primary me-2"></i>
+                    Create Property Reservation
+                </h2>
+                <a href="{% url 'sales:reservation_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                </a>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Please correct the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Reservation Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Reservation Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.property.label }} *</label>
+                                {{ form.property }}
+                                <small class="form-text text-muted">Only available properties for sale are shown</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.buyer.label }} *</label>
+                                {{ form.buyer }}
+                                <small class="form-text text-muted">Only qualified buyers are shown</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.expiry_date.label }} *</label>
+                                {{ form.expiry_date }}
+                                <small class="form-text text-muted">Reservation will expire after this date</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-dollar-sign text-success me-2"></i>
+                            Payment Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.reservation_amount.label }} *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">EGP</span>
+                                    {{ form.reservation_amount }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.payment_method.label }} *</label>
+                                {{ form.payment_method }}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ form.payment_reference.label }} *</label>
+                                {{ form.payment_reference }}
+                                <small class="form-text text-muted">Transaction/receipt reference number</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comment text-info me-2"></i>
+                            Notes (Optional)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.notes.label }}</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'sales:reservation_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-bookmark me-2"></i>
+                                Create Reservation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
