@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ notification.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .notification-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .badge-urgent { background: #ef4444; color: white; }
+        .badge-high { background: #f59e0b; color: white; }
+        .badge-medium { background: #3b82f6; color: white; }
+        .badge-low { background: #6b7280; color: white; }
+        .action-button {
+            display: inline-block;
+            background: #1E3A8A;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">🏢 Origin App</h1>
+        <p style="margin: 10px 0 0 0;">Real Estate Management</p>
+    </div>
+    
+    <div class="content">
+        <!-- Priority Badge -->
+        {% if notification.priority == 'urgent' %}
+        <span class="notification-badge badge-urgent">⚠️ URGENT</span>
+        {% elif notification.priority == 'high' %}
+        <span class="notification-badge badge-high">❗ HIGH PRIORITY</span>
+        {% elif notification.priority == 'medium' %}
+        <span class="notification-badge badge-medium">📌 MEDIUM</span>
+        {% else %}
+        <span class="notification-badge badge-low">ℹ️ INFO</span>
+        {% endif %}
+        
+        <!-- Title -->
+        <h2 style="color: #1E3A8A; margin-top: 10px;">{{ notification.title }}</h2>
+        
+        <!-- Message -->
+        <div style="background: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <p>{{ notification.message }}</p>
+        </div>
+        
+        <!-- Action Button -->
+        {% if notification.action_url %}
+        <div style="text-align: center;">
+            <a href="{{ site_url }}{{ notification.action_url }}" class="action-button">
+                {{ notification.action_label|default:"Take Action" }} →
+            </a>
+        </div>
+        {% elif notification.link %}
+        <div style="text-align: center;">
+            <a href="{{ site_url }}{{ notification.link }}" class="action-button">
+                View Details →
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Metadata -->
+        {% if notification.metadata %}
+        <div style="margin-top: 20px; padding: 15px; background: white; border-left: 4px solid #1E3A8A; border-radius: 5px;">
+            <strong>Additional Information:</strong>
+            <ul style="margin: 10px 0 0 0;">
+                {% for key, value in notification.metadata.items %}
+                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated notification from Origin App.</p>
+        <p>To manage your notification preferences, <a href="{{ site_url }}/admin/core/notificationpreference/" style="color: #1E3A8A;">click here</a>.</p>
+        <p style="margin-top: 15px;">© 2025 Origin App Real Estate Management. All rights reserved.</p>
+    </div>
+</body>
+</html>

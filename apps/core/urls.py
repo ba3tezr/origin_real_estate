@@ -1,5 +1,5 @@
 """
-URL configuration for Core app.
+URL configuration for Core app - Notifications
 """
 from django.urls import path
 from . import views
@@ -7,11 +7,13 @@ from . import views
 app_name = 'core'
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    path('profile/', views.profile, name='profile'),
-    path('notifications/', views.notifications, name='notifications'),
-    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
-    path('online-users/', views.online_users, name='online_users'),
+    # Notification URLs
+    path('notifications/', views.notification_list, name='notification_list'),
+    path('notifications/<int:pk>/read/', views.notification_mark_as_read, name='notification_mark_as_read'),
+    path('notifications/mark-all-read/', views.notification_mark_all_as_read, name='notification_mark_all_as_read'),
+    path('notifications/<int:pk>/delete/', views.notification_delete, name='notification_delete'),
+    
+    # AJAX endpoints
+    path('api/notifications/count/', views.notification_unread_count, name='notification_unread_count'),
+    path('api/notifications/recent/', views.notification_recent, name='notification_recent'),
 ]
