@@ -13,12 +13,12 @@
 
 2. DEBUG
 ───────────────────────────────────────────────────────────────
-False
+True
 
 
 3. ALLOWED_HOSTS
 ───────────────────────────────────────────────────────────────
-originrealestate-production.up.railway.app,*.railway.app,localhost,127.0.0.1
+*
 
 
 4. CSRF_TRUSTED_ORIGINS

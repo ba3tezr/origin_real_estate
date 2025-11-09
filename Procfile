@@ -1,3 +1,3 @@
-web: gunicorn config.wsgi --log-file -
+web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-file - --log-level info
 release: python manage.py migrate --noinput && python manage.py collectstatic --noinput
 

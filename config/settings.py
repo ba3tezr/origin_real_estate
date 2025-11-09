@@ -14,9 +14,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-origin-app-real-estate-2024-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+# Allow all hosts if ALLOWED_HOSTS is not set, otherwise use the configured value
+ALLOWED_HOSTS_CONFIG = config('ALLOWED_HOSTS', default='*')
+if ALLOWED_HOSTS_CONFIG == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_CONFIG.split(',')]
 
 
 # Application definition
