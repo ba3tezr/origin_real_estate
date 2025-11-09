@@ -3,6 +3,8 @@ Views for Core app - Notifications & Dashboard
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -10,6 +12,33 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Notification
 from .services import NotificationService
+
+
+def login_view(request):
+    """Login view"""
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next', 'core:dashboard')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Invalid username or password')
+
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    """Logout view"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully')
+    return redirect('core:login')
 
 
 @login_required
