@@ -21,6 +21,11 @@ True
 *
 
 
+4. PORT (Railway يضيفها تلقائياً - لا تضيفها يدوياً)
+───────────────────────────────────────────────────────────────
+(تلقائي)
+
+
 4. CSRF_TRUSTED_ORIGINS
 ───────────────────────────────────────────────────────────────
 https://originrealestate-production.up.railway.app,https://*.railway.app
